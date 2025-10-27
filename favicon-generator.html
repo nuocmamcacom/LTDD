@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Chess Favicon</title>
+</head>
+<body>
+    <canvas id="canvas" width="32" height="32" style="border: 1px solid #ccc;"></canvas>
+    <br>
+    <button onclick="download()">Download Favicon</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Create favicon
+        // Background
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, 32, 32);
+
+        // Chess piece (King)
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 24px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('♔', 16, 16);
+
+        function download() {
+            const link = document.createElement('a');
+            link.download = 'favicon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Auto-generate on load
+        console.log('Chess favicon generated!');
+    </script>
+</body>
+</html>

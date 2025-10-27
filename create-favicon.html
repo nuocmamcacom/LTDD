@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Chess Favicon</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .preview { display: inline-block; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Chess Favicon Generator</h1>
+    <div>
+        <canvas id="favicon32" width="32" height="32"></canvas>
+        <canvas id="favicon16" width="16" height="16"></canvas>
+        <div class="preview">
+            <h3>Preview 32x32:</h3>
+            <img id="preview32" style="width: 32px; height: 32px; image-rendering: pixelated;">
+        </div>
+        <div class="preview">
+            <h3>Preview 16x16:</h3>
+            <img id="preview16" style="width: 16px; height: 16px; image-rendering: pixelated;">
+        </div>
+    </div>
+    <button onclick="downloadFavicon()">Download Favicon</button>
+
+    <script>
+        function createChessFavicon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw chess king crown
+            ctx.fillStyle = '#FFD700';
+            
+            if (size === 32) {
+                // Crown base
+                ctx.fillRect(6, 20, 20, 8);
+                
+                // Crown points
+                ctx.fillRect(8, 12, 3, 8);
+                ctx.fillRect(12.5, 8, 3, 12);
+                ctx.fillRect(17, 12, 3, 8);
+                
+                // Crown jewel
+                ctx.fillStyle = '#FF4444';
+                ctx.fillRect(13.5, 10, 1, 1);
+                
+                // Base
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(4, 28, 24, 2);
+            } else {
+                // 16x16 simplified version
+                ctx.fillRect(3, 10, 10, 4);
+                ctx.fillRect(4, 6, 2, 4);
+                ctx.fillRect(7, 4, 2, 6);
+                ctx.fillRect(10, 6, 2, 4);
+                
+                // Base
+                ctx.fillRect(2, 14, 12, 1);
+            }
+        }
+
+        // Create favicons
+        const canvas32 = document.getElementById('favicon32');
+        const canvas16 = document.getElementById('favicon16');
+        
+        createChessFavicon(canvas32, 32);
+        createChessFavicon(canvas16, 16);
+        
+        // Update previews
+        document.getElementById('preview32').src = canvas32.toDataURL();
+        document.getElementById('preview16').src = canvas16.toDataURL();
+        
+        function downloadFavicon() {
+            // Download 32x32 version as PNG
+            const link = document.createElement('a');
+            link.download = 'chess-favicon.png';
+            link.href = canvas32.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>

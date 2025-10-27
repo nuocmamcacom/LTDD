@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess.com Style Demo ♔</title>
+    <style>
+        /* Chess.com inspired styles */
+        :root {
+            --chess-primary: #7fa650;
+            --chess-primary-hover: #739148;
+            --chess-bg-primary: #ffffff;
+            --chess-bg-secondary: #f6f6f6;
+            --chess-text-primary: #2c2c2c;
+            --chess-text-secondary: #666666;
+            --chess-border: #e0e0e0;
+            --chess-board-light: #f0d9b5;
+            --chess-board-dark: #b58863;
+            --chess-shadow: rgba(0, 0, 0, 0.08);
+            --chess-space-xs: 4px;
+            --chess-space-sm: 8px;
+            --chess-space-md: 16px;
+            --chess-space-lg: 24px;
+            --chess-radius-sm: 4px;
+            --chess-radius-md: 8px;
+            --chess-radius-lg: 12px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --chess-bg-primary: #1a1a1a;
+                --chess-bg-secondary: #2d2d2d;
+                --chess-text-primary: #ffffff;
+                --chess-text-secondary: #cccccc;
+                --chess-border: #404040;
+                --chess-shadow: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--chess-bg-primary);
+            color: var(--chess-text-primary);
+            margin: 0;
+            padding: var(--chess-space-md);
+            line-height: 1.5;
+        }
+
+        .chess-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .chess-header {
+            background-color: var(--chess-bg-primary);
+            border-bottom: 1px solid var(--chess-border);
+            padding: var(--chess-space-md);
+            margin-bottom: var(--chess-space-lg);
+            text-align: center;
+            box-shadow: 0 1px 3px var(--chess-shadow);
+        }
+
+        .chess-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--chess-text-primary);
+            margin: 0;
+        }
+
+        .chess-card {
+            background-color: var(--chess-bg-primary);
+            border: 1px solid var(--chess-border);
+            border-radius: var(--chess-radius-md);
+            padding: var(--chess-space-md);
+            margin: var(--chess-space-md) 0;
+            box-shadow: 0 1px 3px var(--chess-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .chess-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--chess-shadow);
+        }
+
+        .chess-btn {
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            padding: var(--chess-space-md) var(--chess-space-lg);
+            border-radius: var(--chess-radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: var(--chess-space-xs);
+        }
+
+        .chess-btn-primary {
+            background-color: var(--chess-primary);
+            color: white;
+        }
+
+        .chess-btn-primary:hover {
+            background-color: var(--chess-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .chess-btn-secondary {
+            background-color: transparent;
+            color: var(--chess-primary);
+            border: 1px solid var(--chess-primary);
+        }
+
+        .chess-btn-secondary:hover {
+            background-color: var(--chess-primary);
+            color: white;
+        }
+
+        .chess-input {
+            font-family: inherit;
+            font-size: 16px;
+            padding: var(--chess-space-sm) var(--chess-space-md);
+            border: 1px solid var(--chess-border);
+            border-radius: var(--chess-radius-sm);
+            background-color: var(--chess-bg-secondary);
+            color: var(--chess-text-primary);
+            width: 100%;
+            margin: var(--chess-space-xs) 0;
+            box-sizing: border-box;
+        }
+
+        .chess-input:focus {
+            outline: none;
+            border-color: var(--chess-primary);
+            box-shadow: 0 0 0 2px rgba(127, 166, 80, 0.2);
+        }
+
+        .chess-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--chess-space-md);
+            margin: var(--chess-space-lg) 0;
+        }
+
+        .chess-board {
+            width: 200px;
+            height: 200px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 2px solid var(--chess-border);
+            border-radius: var(--chess-radius-sm);
+            margin: var(--chess-space-md) auto;
+        }
+
+        .chess-square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .chess-square-light {
+            background-color: var(--chess-board-light);
+        }
+
+        .chess-square-dark {
+            background-color: var(--chess-board-dark);
+        }
+
+        .chess-badge {
+            display: inline-block;
+            padding: var(--chess-space-xs) var(--chess-space-sm);
+            background-color: var(--chess-primary);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 16px;
+            margin: var(--chess-space-xs);
+        }
+
+        .chess-text-secondary {
+            color: var(--chess-text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .chess-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chess-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chess-container">
+        <!-- Header -->
+        <header class="chess-header">
+            <h1 class="chess-title">Chess Online ♔</h1>
+            <p class="chess-text-secondary">Chess.com inspired design system</p>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="chess-grid">
+            <!-- Buttons Card -->
+            <div class="chess-card">
+                <h2>Buttons</h2>
+                <button class="chess-btn chess-btn-primary">Create Room</button>
+                <button class="chess-btn chess-btn-secondary">Join Room</button>
+                <button class="chess-btn chess-btn-primary">Play Online</button>
+                <button class="chess-btn chess-btn-secondary">Spectate</button>
+            </div>
+
+            <!-- Form Card -->
+            <div class="chess-card">
+                <h2>Form Elements</h2>
+                <input type="text" class="chess-input" placeholder="Enter room code">
+                <input type="email" class="chess-input" placeholder="Email address">
+                <input type="password" class="chess-input" placeholder="Password">
+                <button class="chess-btn chess-btn-primary" style="width: 100%;">Sign In</button>
+            </div>
+
+            <!-- Chess Board -->
+            <div class="chess-card">
+                <h2>Chess Board Preview</h2>
+                <div class="chess-board">
+                    <!-- Generate 64 squares -->
+                    <div class="chess-square chess-square-dark">♜</div>
+                    <div class="chess-square chess-square-light">♞</div>
+                    <div class="chess-square chess-square-dark">♝</div>
+                    <div class="chess-square chess-square-light">♛</div>
+                    <div class="chess-square chess-square-dark">♚</div>
+                    <div class="chess-square chess-square-light">♝</div>
+                    <div class="chess-square chess-square-dark">♞</div>
+                    <div class="chess-square chess-square-light">♜</div>
+                    
+                    <div class="chess-square chess-square-light">♟</div>
+                    <div class="chess-square chess-square-dark">♟</div>
+                    <div class="chess-square chess-square-light">♟</div>
+                    <div class="chess-square chess-square-dark">♟</div>
+                    <div class="chess-square chess-square-light">♟</div>
+                    <div class="chess-square chess-square-dark">♟</div>
+                    <div class="chess-square chess-square-light">♟</div>
+                    <div class="chess-square chess-square-dark">♟</div>
+                    
+                    <!-- Empty rows -->
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    <div class="chess-square chess-square-light"></div>
+                    <div class="chess-square chess-square-dark"></div>
+                    
+                    <div class="chess-square chess-square-dark">♙</div>
+                    <div class="chess-square chess-square-light">♙</div>
+                    <div class="chess-square chess-square-dark">♙</div>
+                    <div class="chess-square chess-square-light">♙</div>
+                    <div class="chess-square chess-square-dark">♙</div>
+                    <div class="chess-square chess-square-light">♙</div>
+                    <div class="chess-square chess-square-dark">♙</div>
+                    <div class="chess-square chess-square-light">♙</div>
+                    
+                    <div class="chess-square chess-square-light">♖</div>
+                    <div class="chess-square chess-square-dark">♘</div>
+                    <div class="chess-square chess-square-light">♗</div>
+                    <div class="chess-square chess-square-dark">♕</div>
+                    <div class="chess-square chess-square-light">♔</div>
+                    <div class="chess-square chess-square-dark">♗</div>
+                    <div class="chess-square chess-square-light">♘</div>
+                    <div class="chess-square chess-square-dark">♖</div>
+                </div>
+            </div>
+
+            <!-- Status Cards -->
+            <div class="chess-card">
+                <h2>Game Status</h2>
+                <p>Current Games: <span class="chess-badge">5</span></p>
+                <p>Online Players: <span class="chess-badge">127</span></p>
+                <p>Your Rating: <span class="chess-badge">1450</span></p>
+                <p class="chess-text-secondary">Last played: 2 hours ago</p>
+            </div>
+
+            <!-- Recent Games -->
+            <div class="chess-card">
+                <h2>Recent Games</h2>
+                <div style="border-bottom: 1px solid var(--chess-border); padding: var(--chess-space-sm) 0;">
+                    <strong>vs. Player123</strong> <span class="chess-badge" style="background: #27ae60;">Won</span>
+                    <p class="chess-text-secondary" style="margin: 4px 0;">10 minutes • Rated</p>
+                </div>
+                <div style="border-bottom: 1px solid var(--chess-border); padding: var(--chess-space-sm) 0;">
+                    <strong>vs. ChessMaster</strong> <span class="chess-badge" style="background: #e74c3c;">Lost</span>
+                    <p class="chess-text-secondary" style="margin: 4px 0;">15 minutes • Rated</p>
+                </div>
+                <div style="padding: var(--chess-space-sm) 0;">
+                    <strong>vs. Rookie99</strong> <span class="chess-badge" style="background: #95a5a6;">Draw</span>
+                    <p class="chess-text-secondary" style="margin: 4px 0;">5 minutes • Casual</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="chess-card">
+                <h2>Quick Actions</h2>
+                <button class="chess-btn chess-btn-primary" style="width: 100%; margin: var(--chess-space-xs) 0;">
+                    🎯 Play Computer
+                </button>
+                <button class="chess-btn chess-btn-secondary" style="width: 100%; margin: var(--chess-space-xs) 0;">
+                    👥 Find Player
+                </button>
+                <button class="chess-btn chess-btn-secondary" style="width: 100%; margin: var(--chess-space-xs) 0;">
+                    📚 Puzzles
+                </button>
+                <button class="chess-btn chess-btn-secondary" style="width: 100%; margin: var(--chess-space-xs) 0;">
+                    📊 Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="chess-card" style="text-align: center; margin-top: var(--chess-space-lg);">
+            <p class="chess-text-secondary">
+                Chess.com inspired design system • Responsive & Mobile-friendly
+            </p>
+            <p class="chess-text-secondary">
+                ♔ Built with modern CSS & React Native Web compatibility
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity
+        document.querySelectorAll('.chess-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('Button clicked:', this.textContent);
+                
+                // Add click feedback
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Chess square hover effects
+        document.querySelectorAll('.chess-square').forEach(square => {
+            square.addEventListener('mouseenter', function() {
+                this.style.boxShadow = 'inset 0 0 0 2px rgba(127, 166, 80, 0.6)';
+            });
+            
+            square.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Theme toggle (demo)
+        const toggleTheme = () => {
+            document.body.style.filter = 
+                document.body.style.filter === 'invert(1) hue-rotate(180deg)' 
+                    ? '' 
+                    : 'invert(1) hue-rotate(180deg)';
+        };
+
+        // Add theme toggle button
+        const header = document.querySelector('.chess-header');
+        const themeBtn = document.createElement('button');
+        themeBtn.textContent = '🌙 Toggle Dark Mode';
+        themeBtn.className = 'chess-btn chess-btn-secondary';
+        themeBtn.onclick = toggleTheme;
+        header.appendChild(themeBtn);
+    </script>
+</body>
+</html>

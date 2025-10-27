@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chess Favicon</title>
+    <style>
+        body { 
+            margin: 0; 
+            background: #1a1a1a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: Arial, sans-serif;
+        }
+        .favicon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="favicon">♔</div>
+    <script>
+        // Convert to canvas and download
+        function downloadFavicon() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+            gradient.addColorStop(0, '#FFD700');
+            gradient.addColorStop(1, '#FFA500');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Chess king symbol
+            ctx.fillStyle = '#1a1a1a';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('♔', 16, 16);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = 'favicon.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Auto download after 1 second
+        setTimeout(downloadFavicon, 1000);
+    </script>
+</body>
+</html>
