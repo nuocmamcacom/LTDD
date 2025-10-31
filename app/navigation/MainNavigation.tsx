@@ -32,22 +32,11 @@ export default function MainNavigation() {
   const { banInfo, loading: banLoading, isBanned } = useBanStatus();
   useAppState(); // Initialize app state monitoring for friends
 
-  // Debug logging for ban status
-  React.useEffect(() => {
-    console.log('🔍 [MainNavigation] Ban status update:', {
-      isBanned,
-      banInfo,
-      user: user?.email || 'No user'
-    });
-  }, [isBanned, banInfo, user?.email]);
-
   // Handle user changes for Friends manager
   useEffect(() => {
     if (user && user.email && isSessionReady) {
-      console.log("🔄 User logged in, reinitializing Friends manager:", user.email);
       friendsManager.reinitialize();
     } else if (!user) {
-      console.log("🔄 User logged out, cleaning up Friends manager");
       friendsManager.cleanup();
     }
   }, [user?.email, isSessionReady]);
@@ -205,9 +194,7 @@ export default function MainNavigation() {
           visible={isBanned && !!user}
           banInfo={banInfo}
           onClose={() => {
-            console.log('🔔 Ban notification onClose called');
-            console.log('🔔 Current user:', user?.email || 'No user');
-            console.log('🔔 Ban status:', { isBanned, banInfo });
+            // Handle ban notification close
           }}
         />
       )}

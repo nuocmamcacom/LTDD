@@ -3,10 +3,13 @@
  * Provides Chess.com inspired theme context to the entire app
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { createChessStyles } from './chessStyles';
 import { ChessBorderRadius, ChessColors, ChessFonts, ChessSpacing } from './chessTheme';
+
+const CHESS_THEME_STORAGE_KEY = '@chess_app_dark_mode';
 
 export interface ChessTheme {
   colors: typeof ChessColors.light;
@@ -16,6 +19,7 @@ export interface ChessTheme {
   styles: ReturnType<typeof createChessStyles>;
   isDark: boolean;
   toggleTheme: () => void;
+  isLoading: boolean;
 }
 
 const ChessThemeContext = createContext<ChessTheme | null>(null);
@@ -37,16 +41,46 @@ export const ChessThemeProvider: React.FC<ChessThemeProviderProps> = ({
     if (forceLight) return false;
     return systemColorScheme === 'dark';
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [userPreference, setUserPreference] = useState<'dark' | 'light' | null>(null);
 
+  // Load saved theme preference on mount
   useEffect(() => {
-    if (!forceDark && !forceLight) {
-      setIsDark(systemColorScheme === 'dark');
-    }
-  }, [systemColorScheme, forceDark, forceLight]);
+    loadSavedTheme();
+  }, []);
 
-  const toggleTheme = () => {
+  // Apply user preference or system theme
+  useEffect(() => {
+    if (!forceDark && !forceLight && !isLoading) {
+      const shouldBeDark = userPreference ? userPreference === 'dark' : systemColorScheme === 'dark';
+      setIsDark(shouldBeDark);
+    }
+  }, [systemColorScheme, userPreference, forceDark, forceLight, isLoading]);
+
+  const loadSavedTheme = async () => {
+    try {
+      const savedTheme = await AsyncStorage.getItem(CHESS_THEME_STORAGE_KEY);
+      if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
+        setUserPreference(savedTheme);
+      }
+    } catch (error) {
+      console.error('Failed to load saved chess theme:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleTheme = async () => {
     if (!forceDark && !forceLight) {
-      setIsDark(!isDark);
+      const newTheme = isDark ? 'light' : 'dark';
+      setUserPreference(newTheme);
+      setIsDark(newTheme === 'dark');
+      
+      try {
+        await AsyncStorage.setItem(CHESS_THEME_STORAGE_KEY, newTheme);
+      } catch (error) {
+        console.error('Failed to save chess theme:', error);
+      }
     }
   };
 
@@ -61,6 +95,7 @@ export const ChessThemeProvider: React.FC<ChessThemeProviderProps> = ({
     styles,
     isDark,
     toggleTheme,
+    isLoading,
   };
 
   return (

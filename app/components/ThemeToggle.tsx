@@ -1,25 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '../providers/ThemeProvider';
+import { useChessTheme } from '../../constants/ChessThemeProvider';
 
 interface ThemeToggleProps {
   size?: number;
 }
 
 export default function ThemeToggle({ size = 24 }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, colors } = useChessTheme();
   
-  const iconName = theme === 'light' ? 'moon' : 'sunny';
-  const iconColor = theme === 'light' ? '#1a202c' : '#ffffff';
-  
-  console.log('ThemeToggle render:', { theme, iconName, iconColor });
+  const iconName = isDark ? 'sunny' : 'moon';
+  const iconColor = colors.text;
   
   return (
     <TouchableOpacity 
-      style={styles.container} 
+      style={[styles.container, { backgroundColor: colors.backgroundSecondary }]} 
       onPress={toggleTheme}
-      accessibilityLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       accessibilityRole="button"
     >
       <Ionicons 
@@ -35,8 +33,9 @@ const styles = StyleSheet.create({
   container: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 });

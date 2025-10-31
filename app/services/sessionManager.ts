@@ -17,8 +17,6 @@ class SessionManager {
 
   async startSession(email: string): Promise<boolean> {
     try {
-      console.log('🔐 Starting session for:', email);
-      
       // Get current port from window location
       const currentPort = this.getCurrentPort();
       const sessionId = `${email}_${currentPort}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -40,7 +38,6 @@ class SessionManager {
       // Start periodic validation
       this.startSessionValidation();
       
-      console.log('✅ Session started successfully:', sessionId);
       return true;
     } catch (error) {
       console.error('❌ Failed to start session:', error);
@@ -63,14 +60,9 @@ class SessionManager {
       if (existingSession) {
         const session = JSON.parse(existingSession);
         if (session.port !== currentPort) {
-          console.log(`🚨 Found existing session on port ${session.port}, clearing it...`);
-          
           // Clear the old session
           await AsyncStorage.removeItem(`session_${email}`);
           await AsyncStorage.removeItem('currentSession');
-          
-          // If this is a different port, the old session will be detected as invalid
-          console.log('✅ Previous session cleared');
         }
       }
     } catch (error) {
@@ -86,19 +78,14 @@ class SessionManager {
     this.isValidating = true;
 
     try {
-      console.log('🔍 Validating session:', this.sessionInfo.sessionId);
-      
       // Check if our session is still the active one for this email
       const activeSession = await AsyncStorage.getItem(`session_${this.sessionInfo.email}`);
       if (activeSession) {
         const active = JSON.parse(activeSession);
         
         if (active.sessionId === this.sessionInfo.sessionId) {
-          console.log('✅ Session is valid');
           return true;
         } else {
-          console.log('❌ Session invalidated by another login');
-          
           Alert.alert(
             'Account Logged In Elsewhere',
             `Your account has been logged in from another device/port:\n\nPort: ${active.port}\nTime: ${new Date(active.startTime).toLocaleString()}\n\nYou have been logged out from this device.`,
@@ -108,7 +95,6 @@ class SessionManager {
           return false;
         }
       } else {
-        console.log('❌ No active session found');
         return false;
       }
     } catch (error) {
@@ -123,14 +109,11 @@ class SessionManager {
     if (!this.sessionInfo) return;
 
     try {
-      console.log('🔐 Ending session:', this.sessionInfo.sessionId);
-      
       // Clear both session storages
       await AsyncStorage.removeItem('currentSession');
       await AsyncStorage.removeItem(`session_${this.sessionInfo.email}`);
       
       await this.clearSessionData();
-      console.log('✅ Session ended');
     } catch (error) {
       console.error('❌ Failed to end session:', error);
       await this.clearSessionData();
@@ -138,8 +121,6 @@ class SessionManager {
   }
 
   private async forceLogout(): Promise<void> {
-    console.log('🚨 Force logout initiated');
-    
     // Stop validation
     this.stopSessionValidation();
     
@@ -149,7 +130,6 @@ class SessionManager {
     // Sign out from Firebase
     try {
       await signOut(auth);
-      console.log('✅ Firebase logout successful');
     } catch (error) {
       console.error('❌ Firebase logout error:', error);
     }
@@ -169,8 +149,6 @@ class SessionManager {
         this.stopSessionValidation();
       }
     }, 10000);
-    
-    console.log('🔍 Session validation enabled (checking every 10s)');
   }
 
   private stopSessionValidation(): void {

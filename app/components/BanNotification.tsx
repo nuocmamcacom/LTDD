@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { getTheme } from '../constants/theme';
-import { useTheme } from '../providers/ThemeProvider';
+import { useChessColors, useChessStyles, useChessTheme } from '../../constants/ChessThemeProvider';
 import { auth } from '../services/firebaseConfig';
 
 interface BanNotificationProps {
@@ -24,15 +23,13 @@ interface BanNotificationProps {
 }
 
 export default function BanNotification({ visible, banInfo, onClose }: BanNotificationProps) {
-  const { theme: themeMode } = useTheme();
-  const theme = getTheme(themeMode);
+  const { isDark } = useChessTheme();
+  const chessColors = useChessColors();
+  const chessStyles = useChessStyles();
 
   const handleLogoutPress = async () => {
-    console.log('🔥 SIGN OUT BUTTON PRESSED!');
     try {
-      console.log('🚪 Logging out banned user...');
       await auth.signOut();
-      console.log('✅ Logout successful, closing notification...');
       onClose?.();
     } catch (error) {
       console.error('❌ Error signing out:', error);
@@ -87,7 +84,7 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
       ]}
       pointerEvents={visible ? 'auto' : 'none'}
     >
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { backgroundColor: chessColors.background }]}>
           {/* Header */}
           <View style={[styles.header, { backgroundColor: '#e74c3c' }]}>
             <View style={styles.headerContent}>
@@ -100,14 +97,14 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.warningBox}>
               <Ionicons name="warning" size={24} color="#e74c3c" />
-              <Text style={[styles.warningText, { color: theme.colors.text }]}>
+              <Text style={[styles.warningText, { color: chessColors.text }]}>
                 Your account has been banned from Chess Online
               </Text>
             </View>
 
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
-                <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.detailLabel, { color: chessColors.textSecondary }]}>
                   🚫 Status:
                 </Text>
                 <Text style={[styles.detailValue, { color: '#e74c3c' }]}>
@@ -117,10 +114,10 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
 
               {banInfo.bannedBy && (
                 <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+                  <Text style={[styles.detailLabel, { color: chessColors.textSecondary }]}>
                     👮 Banned by:
                   </Text>
-                  <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                  <Text style={[styles.detailValue, { color: chessColors.text }]}>
                     {banInfo.bannedBy}
                   </Text>
                 </View>
@@ -128,10 +125,10 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
 
               {banInfo.bannedAt && (
                 <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+                  <Text style={[styles.detailLabel, { color: chessColors.textSecondary }]}>
                     📅 Banned on:
                   </Text>
-                  <Text style={[styles.detailValue, { color: theme.colors.text }]}>
+                  <Text style={[styles.detailValue, { color: chessColors.text }]}>
                     {formatBanDate(banInfo.bannedAt)}
                   </Text>
                 </View>
@@ -139,14 +136,14 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
 
               {banInfo.banReason && (
                 <View style={styles.reasonContainer}>
-                  <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+                  <Text style={[styles.detailLabel, { color: chessColors.textSecondary }]}>
                     📝 Reason:
                   </Text>
                   <View style={[styles.reasonBox, { 
-                    backgroundColor: theme.colors.backgroundSecondary,
-                    borderColor: theme.colors.border 
+                    backgroundColor: chessColors.backgroundSecondary,
+                    borderColor: chessColors.border 
                   }]}>
-                    <Text style={[styles.reasonText, { color: theme.colors.text }]}>
+                    <Text style={[styles.reasonText, { color: chessColors.text }]}>
                       {banInfo.banReason}
                     </Text>
                   </View>
@@ -159,20 +156,20 @@ export default function BanNotification({ visible, banInfo, onClose }: BanNotifi
               borderColor: '#f1c40f' 
             }]}>
               <Ionicons name="information-circle" size={20} color="#f1c40f" />
-              <Text style={[styles.infoText, { color: theme.colors.text }]}>
+              <Text style={[styles.infoText, { color: chessColors.text }]}>
                 If you believe this ban was issued in error, please contact the administrators 
                 for review and assistance.
               </Text>
             </View>
 
             <View style={[styles.contactBox, { 
-              backgroundColor: theme.colors.backgroundSecondary,
-              borderColor: theme.colors.border 
+              backgroundColor: chessColors.backgroundSecondary,
+              borderColor: chessColors.border 
             }]}>
-              <Text style={[styles.contactTitle, { color: theme.colors.text }]}>
+              <Text style={[styles.contactTitle, { color: chessColors.text }]}>
                 📧 Contact Support:
               </Text>
-              <Text style={[styles.contactEmail, { color: theme.colors.primary }]}>
+              <Text style={[styles.contactEmail, { color: chessColors.primary }]}>
                 support@chess-online.com
               </Text>
             </View>

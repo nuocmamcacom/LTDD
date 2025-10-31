@@ -1,7 +1,7 @@
 // app/screens/Game/GameBoard.tsx
 import { Chess, Square } from "chess.js";
 import React, { useEffect, useMemo, useState } from "react";
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
 import { ChessTimer } from "../../components/ChessTimer";
 import { useLanguage } from "../../providers/LanguageProvider";
@@ -33,6 +33,10 @@ export default function GameBoard({ myColor, onMove, onGameEnd, gameTimeMinutes 
   const [whiteTime, setWhiteTime] = useState(gameTimeMinutes * 60);
   const [blackTime, setBlackTime] = useState(gameTimeMinutes * 60);
   const [gameStarted, setGameStarted] = useState(false);
+  
+  // ✅ Promotion states
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{from: Square, to: Square} | null>(null);
   
   // Theme and responsive sizing
   const chessTheme = useChessTheme();
@@ -167,47 +171,60 @@ export default function GameBoard({ myColor, onMove, onGameEnd, gameTimeMinutes 
 
   const onSquarePress = (rowIdx: number, colIdx: number) => {
     const sq = algebraicAt(rowIdx, colIdx);
-    const piece = game.get(sq);
-
-    // Debug logs to see what's happening
-    console.log(`🎯 Square pressed: ${sq}, Piece: ${piece ? `${piece.color}${piece.type}` : 'empty'}`);
-    console.log(`🎮 My color: ${myColor}, Current turn: ${game.turn()}`);
+    const currentPiece = game.get(sq);
 
     // Check if it's player's turn
     const currentTurn = game.turn();
     
     if (currentTurn !== myColor) {
-      console.log(`❌ Not your turn! Current: ${currentTurn}, You are: ${myColor}`);
       return;
     }
 
     // If no piece selected, select piece of correct color
     if (!from) {
-      if (!piece || piece.color !== myColor) {
-        console.log(`❌ Invalid piece selection. Piece: ${piece ? piece.color + piece.type : 'empty'}, Your color: ${myColor}`);
+      if (!currentPiece || currentPiece.color !== myColor) {
         return;
       }
       setFrom(sq);
       const moves = game.moves({ square: sq, verbose: true }) as any[];
       setLegal(moves.map((m) => m.to as Square));
-      console.log(`✅ Selected ${piece.color}${piece.type} at ${sq}, legal moves:`, moves.map(m => m.to));
       return;
     }
 
     // If selecting a different piece of same color, change selection
-    if (piece && piece.color === myColor && sq !== from) {
+    if (currentPiece && currentPiece.color === myColor && sq !== from) {
       setFrom(sq);
       const moves = game.moves({ square: sq, verbose: true }) as any[];
       setLegal(moves.map((m) => m.to as Square));
-      console.log(`✅ Changed selection to ${piece.color}${piece.type} at ${sq}`);
       return;
     }
 
-    // Try to make move
-    const move = game.move({ from, to: sq, promotion: "q" as any });
+    // Check if move is valid first
+    const testMove = game.moves({ square: from, verbose: true }).find((m: any) => m.to === sq);
+    if (!testMove) {
+      setFrom(null);
+      setLegal([]);
+      return;
+    }
+
+    // Check if this is a pawn promotion
+    const selectedPiece = game.get(from);
+    const isPromotion = selectedPiece?.type === 'p' && 
+      ((selectedPiece.color === 'w' && sq[1] === '8') || (selectedPiece.color === 'b' && sq[1] === '1'));
+
+    if (isPromotion) {
+      // Show promotion dialog
+      setPendingMove({ from, to: sq });
+      setShowPromotionDialog(true);
+      setFrom(null);
+      setLegal([]);
+      return;
+    }
+
+    // Try to make move (non-promotion)
+    const move = game.move({ from, to: sq });
     if (move) {
       setFen(game.fen());
-      console.log(`✅ Move made: ${move.san}, New FEN: ${game.fen()}`);
       
       // Play appropriate sound
       if (move.captured) {
@@ -225,34 +242,64 @@ export default function GameBoard({ myColor, onMove, onGameEnd, gameTimeMinutes 
       
       // Check game status after move
       setTimeout(() => checkGameStatus(), 100);
-    } else {
-      console.log(`❌ Invalid move: ${from} → ${sq}`);
     }
     setFrom(null);
     setLegal([]);
   };
 
+  // Handle promotion piece selection
+  const handlePromotion = (promotionPiece: 'q' | 'r' | 'b' | 'n') => {
+    if (!pendingMove) return;
+
+    const game = new Chess(fen);
+    const move = game.move({ 
+      from: pendingMove.from, 
+      to: pendingMove.to, 
+      promotion: promotionPiece 
+    });
+    
+    if (move) {
+      setFen(game.fen());
+      
+      // Play appropriate sound
+      if (move.captured) {
+        soundManager.playSound('capture');
+      } else {
+        soundManager.playSound('move');
+      }
+      
+      // Start game timer on first move
+      if (!gameStarted) {
+        setGameStarted(true);
+      }
+      
+      onMove?.(move.san, game.fen());
+      
+      // Check game status after move
+      setTimeout(() => checkGameStatus(), 100);
+    }
+
+    // Close dialog and clear pending move
+    setShowPromotionDialog(false);
+    setPendingMove(null);
+  };
+
   // Apply remote FEN when parent provides an update (from socket)
   React.useEffect(() => {
     const remoteFen = remoteFenProp;
-    console.log("🔄 Remote FEN update:", { remoteFen, currentFen: fen });
     
     if (!remoteFen) {
-      console.log("❌ No remote FEN provided");
       return;
     }
     if (remoteFen === fen) {
-      console.log("❌ Remote FEN same as current FEN");
       return;
     }
     
     try {
-      console.log("✅ Loading remote FEN:", remoteFen);
       game.load(remoteFen);
       setFen(game.fen());
       setFrom(null);
       setLegal([]);
-      console.log("✅ Game state updated, new turn:", game.turn());
       // Check status after remote move
       setTimeout(() => checkGameStatus(), 100);
     } catch (e) {
@@ -335,6 +382,75 @@ export default function GameBoard({ myColor, onMove, onGameEnd, gameTimeMinutes 
           </View>
         </View>
       </ScrollView>
+
+      {/* Promotion Dialog */}
+      <Modal
+        visible={showPromotionDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPromotionDialog(false);
+          setPendingMove(null);
+        }}
+      >
+        <View style={styles.promotionOverlay}>
+          <View style={[styles.promotionDialog, { backgroundColor: chessColors.backgroundSecondary }]}>
+            <Text style={[styles.promotionTitle, { color: chessColors.text }]}>
+              {t('game', 'choosePromotionPiece') || 'Choose piece to promote to:'}
+            </Text>
+            
+            <View style={styles.promotionPieces}>
+              <TouchableOpacity 
+                style={[styles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('q')}
+              >
+                <Text style={styles.promotionPieceText}>
+                  {myColor === 'w' ? '♕' : '♛'}
+                </Text>
+                <Text style={[styles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'queen') || 'Queen'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('r')}
+              >
+                <Text style={styles.promotionPieceText}>
+                  {myColor === 'w' ? '♖' : '♜'}
+                </Text>
+                <Text style={[styles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'rook') || 'Rook'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('b')}
+              >
+                <Text style={styles.promotionPieceText}>
+                  {myColor === 'w' ? '♗' : '♝'}
+                </Text>
+                <Text style={[styles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'bishop') || 'Bishop'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('n')}
+              >
+                <Text style={styles.promotionPieceText}>
+                  {myColor === 'w' ? '♘' : '♞'}
+                </Text>
+                <Text style={[styles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'knight') || 'Knight'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -418,5 +534,45 @@ const styles = StyleSheet.create({
   btnText: { 
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Promotion dialog styles
+  promotionOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  promotionDialog: {
+    padding: 20,
+    borderRadius: 16,
+    margin: 20,
+    alignItems: 'center',
+    minWidth: 280,
+  },
+  promotionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  promotionPieces: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  promotionPiece: {
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    minWidth: 60,
+    margin: 4,
+  },
+  promotionPieceText: {
+    fontSize: 32,
+    marginBottom: 4,
+  },
+  promotionLabel: {
+    fontSize: 12,
+    textAlign: 'center',
   },
 });

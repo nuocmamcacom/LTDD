@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { cancelFriendRequest, getFriendRequests, respondToFriendRequest } from "../../services/api";
 import { auth } from "../../services/firebaseConfig";
@@ -28,25 +28,21 @@ export default function FriendRequests({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const { t } = useLanguage();
-  const themedStyles = useThemedStyles();
+  const chessTheme = useChessTheme();
+  const chessStyles = useChessStyles();
+  const chessColors = useChessColors();
   
   const userEmail = auth.currentUser?.email || "";
 
   const loadRequests = useCallback(async () => {
     try {
-      console.log("🔍 Loading friend requests for:", userEmail);
-      
       // Load received requests
-      console.log("📥 Fetching received requests...");
       const receivedResponse = await getFriendRequests(userEmail, "received");
       const receivedData = receivedResponse.data || [];
-      console.log("📥 Raw received data:", receivedData);
       
       // Load sent requests
-      console.log("📤 Fetching sent requests...");
       const sentResponse = await getFriendRequests(userEmail, "sent");
       const sentData = sentResponse.data || [];
-      console.log("📤 Raw sent data:", sentData);
       
       // Transform received requests
       const transformedReceived: FriendRequest[] = receivedData.map((request: any) => ({
@@ -76,7 +72,6 @@ export default function FriendRequests({ navigation }: any) {
       
       setReceivedRequests(transformedReceived);
       setSentRequests(transformedSent);
-      console.log("✅ Loaded requests:", { received: transformedReceived.length, sent: transformedSent.length });
     } catch (error) {
       console.error("Error loading friend requests:", error);
       Alert.alert(t('common', 'error'), t('friends', 'errorLoadRequests'));
@@ -98,8 +93,6 @@ export default function FriendRequests({ navigation }: any) {
   const respondToRequest = async (requestId: string, action: "accept" | "decline") => {
     setRespondingTo(requestId);
     try {
-      console.log(`${action}ing friend request:`, requestId);
-      
       await respondToFriendRequest(requestId, action, userEmail);
       
       // Update local state
@@ -131,8 +124,6 @@ export default function FriendRequests({ navigation }: any) {
           style: "destructive",
           onPress: async () => {
             try {
-              console.log("🗑️ Cancelling friend request:", requestId);
-              
               await cancelFriendRequest(requestId, userEmail);
               
               setSentRequests(requests =>
@@ -175,18 +166,18 @@ export default function FriendRequests({ navigation }: any) {
   };
 
   const renderReceivedRequest = ({ item: request }: { item: FriendRequest }) => (
-    <View style={[styles.requestCard, themedStyles.card]}>
+    <View style={[chessStyles.card, styles.requestCard]}>
       <View style={styles.requestInfo}>
         {/* Profile Picture Placeholder */}
-        <View style={[styles.avatar, themedStyles.card]}>
-          <Text style={[styles.avatarText, themedStyles.text]}>
+        <View style={[chessStyles.card, styles.avatar]}>
+          <Text style={[chessStyles.textPrimary, styles.avatarText]}>
             {request.senderName.charAt(0).toUpperCase()}
           </Text>
         </View>
         
         <View style={styles.requestDetails}>
           <View style={styles.nameRow}>
-            <Text style={[styles.senderName, themedStyles.text]}>{request.senderName}</Text>
+            <Text style={[chessStyles.textPrimary, styles.senderName]}>{request.senderName}</Text>
             <View style={styles.statusIndicator}>
               <View 
                 style={[
@@ -197,21 +188,21 @@ export default function FriendRequests({ navigation }: any) {
             </View>
           </View>
           
-          <Text style={[styles.senderEmail, themedStyles.textSecondary]}>
+          <Text style={[chessStyles.textSecondary, styles.senderEmail]}>
             {request.senderEmail}
           </Text>
           
-          <Text style={[styles.senderElo, themedStyles.textSecondary]}>
+          <Text style={[chessStyles.textSecondary, styles.senderElo]}>
             Rating: {request.senderElo}
           </Text>
           
           {request.message && (
-            <Text style={[styles.requestMessage, themedStyles.text]}>
-              "{request.message}"
+            <Text style={[chessStyles.textPrimary, styles.requestMessage]}>
+              &quot;{request.message}&quot;
             </Text>
           )}
           
-          <Text style={[styles.requestTime, themedStyles.textSecondary]}>
+          <Text style={[chessStyles.textSecondary, styles.requestTime]}>
             {formatTimeAgo(request.createdAt)}
           </Text>
         </View>
@@ -242,28 +233,28 @@ export default function FriendRequests({ navigation }: any) {
   );
 
   const renderSentRequest = ({ item: request }: { item: FriendRequest }) => (
-    <View style={[styles.requestCard, themedStyles.card]}>
+    <View style={[chessStyles.card, styles.requestCard]}>
       <View style={styles.requestInfo}>
         {/* Profile Picture Placeholder */}
-        <View style={[styles.avatar, themedStyles.card]}>
-          <Text style={[styles.avatarText, themedStyles.text]}>
+        <View style={[chessStyles.card, styles.avatar]}>
+          <Text style={[chessStyles.textPrimary, styles.avatarText]}>
             {request.senderName.charAt(0).toUpperCase()}
           </Text>
         </View>
         
         <View style={styles.requestDetails}>
-          <Text style={[styles.senderName, themedStyles.text]}>{request.senderName}</Text>
-          <Text style={[styles.senderEmail, themedStyles.textSecondary]}>
+          <Text style={[chessStyles.textPrimary, styles.senderName]}>{request.senderName}</Text>
+          <Text style={[chessStyles.textSecondary, styles.senderEmail]}>
             {request.receiverEmail}
           </Text>
           
           {request.message && (
-            <Text style={[styles.requestMessage, themedStyles.text]}>
-              Your message: "{request.message}"
+            <Text style={[chessStyles.textPrimary, styles.requestMessage]}>
+              Your message: &quot;{request.message}&quot;
             </Text>
           )}
           
-          <Text style={[styles.requestTime, themedStyles.textSecondary]}>
+          <Text style={[chessStyles.textSecondary, styles.requestTime]}>
             Sent {formatTimeAgo(request.createdAt)}
           </Text>
         </View>
@@ -285,12 +276,12 @@ export default function FriendRequests({ navigation }: any) {
         <Ionicons 
           name={isReceived ? "mail-outline" : "paper-plane-outline"} 
           size={80} 
-          color={themedStyles.textSecondary.color} 
+          color={chessColors.textSecondary} 
         />
-        <Text style={[styles.emptyTitle, themedStyles.text]}>
+        <Text style={[chessStyles.textPrimary, styles.emptyTitle]}>
           {isReceived ? "No Friend Requests" : "No Sent Requests"}
         </Text>
-        <Text style={[styles.emptyMessage, themedStyles.textSecondary]}>
+        <Text style={[chessStyles.textSecondary, styles.emptyMessage]}>
           {isReceived 
             ? "You don't have any pending friend requests."
             : "You haven't sent any friend requests yet."
@@ -305,24 +296,24 @@ export default function FriendRequests({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, themedStyles.container]}>
-        <ActivityIndicator size="large" color={themedStyles.button.backgroundColor} />
-        <Text style={[styles.loadingText, themedStyles.text]}>Loading requests...</Text>
+      <View style={[chessStyles.centeredContainer, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={chessColors.primary} />
+        <Text style={[chessStyles.textPrimary, styles.loadingText]}>Loading requests...</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, themedStyles.container]}>
+    <View style={[chessStyles.container, styles.container]}>
       {/* Header */}
-      <View style={[styles.header, themedStyles.card]}>
+      <View style={[chessStyles.card, styles.header]}>
         <TouchableOpacity 
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={themedStyles.text.color} />
+          <Ionicons name="arrow-back" size={24} color={chessColors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, themedStyles.text]}>Friend Requests</Text>
+        <Text style={[chessStyles.textTitle, styles.headerTitle]}>Friend Requests</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -331,13 +322,13 @@ export default function FriendRequests({ navigation }: any) {
         <TouchableOpacity 
           style={[
             styles.tab,
-            activeTab === "received" && [styles.activeTab, themedStyles.button]
+            activeTab === "received" && [chessStyles.buttonPrimary, styles.activeTab]
           ]}
           onPress={() => setActiveTab("received")}
         >
           <Text style={[
             styles.tabText,
-            activeTab === "received" ? themedStyles.buttonText : themedStyles.text
+            activeTab === "received" ? chessStyles.buttonText : chessStyles.textPrimary
           ]}>
             Received ({receivedRequests.length})
           </Text>
@@ -346,13 +337,13 @@ export default function FriendRequests({ navigation }: any) {
         <TouchableOpacity 
           style={[
             styles.tab,
-            activeTab === "sent" && [styles.activeTab, themedStyles.button]
+            activeTab === "sent" && [chessStyles.buttonPrimary, styles.activeTab]
           ]}
           onPress={() => setActiveTab("sent")}
         >
           <Text style={[
             styles.tabText,
-            activeTab === "sent" ? themedStyles.buttonText : themedStyles.text
+            activeTab === "sent" ? chessStyles.buttonText : chessStyles.textPrimary
           ]}>
             Sent ({sentRequests.length})
           </Text>
@@ -369,7 +360,7 @@ export default function FriendRequests({ navigation }: any) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[themedStyles.button.backgroundColor]}
+            colors={[chessColors.primary]}
           />
         }
         ListEmptyComponent={renderEmptyState}

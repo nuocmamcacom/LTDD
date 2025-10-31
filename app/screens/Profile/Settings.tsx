@@ -2,11 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { useChessColors } from '../../../constants/ChessThemeProvider';
-import { getTheme } from '../../constants/theme';
+import { useChessColors, useChessStyles, useChessTheme } from '../../../constants/ChessThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../providers/LanguageProvider';
-import { useTheme } from '../../providers/ThemeProvider';
 import { auth } from '../../services/firebaseConfig';
 import sessionManager from '../../services/sessionManager';
 import { soundManager } from '../../services/soundManager';
@@ -14,8 +12,9 @@ import { soundManager } from '../../services/soundManager';
 export default function Settings() {
   const { user } = useAuth();
   const { language, setLanguage, t } = useLanguage();
-  const { theme: themeMode, toggleTheme } = useTheme();
-  const theme = getTheme(themeMode);
+  const { isDark, toggleTheme } = useChessTheme();
+  const chessTheme = useChessTheme();
+  const chessStyles = useChessStyles();
   const chessColors = useChessColors();
   const [soundEnabled, setSoundEnabled] = useState(soundManager.isSoundEnabled());
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -84,8 +83,6 @@ export default function Settings() {
               
               // Sign out from Firebase
               await signOut(auth);
-              
-              console.log('✅ Logout successful');
             } catch (error) {
               console.error('❌ Logout error:', error);
               Alert.alert(t('common', 'error'), t('settings', 'logoutError'));
@@ -134,26 +131,27 @@ export default function Settings() {
   }) => (
     <TouchableOpacity 
       style={[
-        styles.settingItem, 
+        chessStyles.card, 
+        styles.settingItem,
         { 
-          backgroundColor: theme.colors.backgroundSecondary,
-          borderBottomColor: theme.colors.border 
+          backgroundColor: chessColors.backgroundSecondary,
+          borderBottomColor: chessColors.border 
         }
       ]} 
       onPress={onPress} 
       disabled={!onPress}
     >
       <View style={styles.settingLeft}>
-        <Ionicons name={icon as any} size={24} color={theme.colors.primary} />
+        <Ionicons name={icon as any} size={24} color={chessColors.primary} />
         <View style={styles.settingText}>
-          <Text style={[styles.settingTitle, { color: theme.colors.text }]}>{title}</Text>
-          {subtitle && <Text style={[styles.settingSubtitle, { color: theme.colors.textSecondary }]}>{subtitle}</Text>}
+          <Text style={[chessStyles.textPrimary, styles.settingTitle]}>{title}</Text>
+          {subtitle && <Text style={[chessStyles.textSecondary, styles.settingSubtitle]}>{subtitle}</Text>}
         </View>
       </View>
       <View style={styles.settingRight}>
         {rightElement}
         {showArrow && !rightElement && (
-          <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={chessColors.textSecondary} />
         )}
       </View>
     </TouchableOpacity>
@@ -161,37 +159,37 @@ export default function Settings() {
 
   const VolumeSlider = () => (
     <View style={styles.volumeContainer}>
-      <Text style={[styles.volumeLabel, { color: theme.colors.textSecondary }]}>{Math.round(soundVolume * 100)}%</Text>
+      <Text style={[chessStyles.textSecondary, styles.volumeLabel]}>{Math.round(soundVolume * 100)}%</Text>
       <View style={styles.volumeButtons}>
         <TouchableOpacity
-          style={[styles.volumeButton, { backgroundColor: theme.colors.border }]}
+          style={[styles.volumeButton, { backgroundColor: chessColors.border }]}
           onPress={() => handleVolumeChange(Math.max(0, soundVolume - 0.1))}
         >
-          <Ionicons name="remove" size={16} color={theme.colors.primary} />
+          <Ionicons name="remove" size={16} color={chessColors.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.volumeButton, { backgroundColor: theme.colors.border }]}
+          style={[styles.volumeButton, { backgroundColor: chessColors.border }]}
           onPress={() => handleVolumeChange(Math.min(1, soundVolume + 0.1))}
         >
-          <Ionicons name="add" size={16} color={theme.colors.primary} />
+          <Ionicons name="add" size={16} color={chessColors.primary} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[chessStyles.container]} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.primary }]}>
-        <Text style={[styles.headerTitle, { color: theme.colors.background }]}>{t('settings', 'settings')}</Text>
-        <Text style={[styles.headerSubtitle, { color: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: chessColors.primary }]}>
+        <Text style={[chessStyles.textTitle, styles.headerTitle, { color: chessColors.textInverse }]}>{t('settings', 'settings')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.headerSubtitle, { color: chessColors.textInverse }]}>
           {t('settings', 'welcomeBack')} {user?.email}
         </Text>
       </View>
 
       {/* Language Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{t('settings', 'language')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.sectionTitle]}>{t('settings', 'language')}</Text>
         <SettingItem
           icon="language"
           title={t('settings', 'appLanguage')}
@@ -201,14 +199,14 @@ export default function Settings() {
             <View style={styles.languageToggle}>
               <Text style={[
                 language === 'en' ? styles.activeLanguage : styles.inactiveLanguage,
-                { color: language === 'en' ? theme.colors.primary : theme.colors.textSecondary }
+                { color: language === 'en' ? chessColors.primary : chessColors.textSecondary }
               ]}>
                 EN
               </Text>
-              <Text style={[styles.languageSeparator, { color: theme.colors.textSecondary }]}>|</Text>
+              <Text style={[styles.languageSeparator, { color: chessColors.textSecondary }]}>|</Text>
               <Text style={[
                 language === 'vi' ? styles.activeLanguage : styles.inactiveLanguage,
-                { color: language === 'vi' ? theme.colors.primary : theme.colors.textSecondary }
+                { color: language === 'vi' ? chessColors.primary : chessColors.textSecondary }
               ]}>
                 VI
               </Text>
@@ -219,24 +217,24 @@ export default function Settings() {
 
       {/* Theme Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{t('settings', 'theme')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.sectionTitle]}>{t('settings', 'theme')}</Text>
         <SettingItem
-          icon={themeMode === 'light' ? 'sunny' : 'moon'}
+          icon={!isDark ? 'sunny' : 'moon'}
           title={t('settings', 'colorTheme')}
-          subtitle={themeMode === 'light' ? t('settings', 'lightMode') : t('settings', 'darkMode')}
+          subtitle={!isDark ? t('settings', 'lightMode') : t('settings', 'darkMode')}
           onPress={handleThemeToggle}
           rightElement={
             <View style={styles.languageToggle}>
               <Text style={[
-                themeMode === 'light' ? styles.activeLanguage : styles.inactiveLanguage,
-                { color: themeMode === 'light' ? theme.colors.primary : theme.colors.textSecondary }
+                !isDark ? styles.activeLanguage : styles.inactiveLanguage,
+                { color: !isDark ? chessColors.primary : chessColors.textSecondary }
               ]}>
                 {t('settings', 'light')}
               </Text>
-              <Text style={[styles.languageSeparator, { color: theme.colors.textSecondary }]}>|</Text>
+              <Text style={[styles.languageSeparator, { color: chessColors.textSecondary }]}>|</Text>
               <Text style={[
-                themeMode === 'dark' ? styles.activeLanguage : styles.inactiveLanguage,
-                { color: themeMode === 'dark' ? theme.colors.primary : theme.colors.textSecondary }
+                isDark ? styles.activeLanguage : styles.inactiveLanguage,
+                { color: isDark ? chessColors.primary : chessColors.textSecondary }
               ]}>
                 {t('settings', 'dark')}
               </Text>
@@ -247,7 +245,7 @@ export default function Settings() {
 
       {/* Sound Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{t('settings', 'sound')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.sectionTitle]}>{t('settings', 'sound')}</Text>
         <SettingItem
           icon="volume-high"
           title={t('settings', 'soundEffects')}
@@ -276,7 +274,7 @@ export default function Settings() {
 
       {/* Display Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{t('settings', 'display')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.sectionTitle]}>{t('settings', 'display')}</Text>
         <SettingItem
           icon="notifications"
           title={t('settings', 'notifications')}
@@ -295,7 +293,7 @@ export default function Settings() {
 
       {/* Account Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{t('settings', 'account')}</Text>
+        <Text style={[chessStyles.textSecondary, styles.sectionTitle]}>{t('settings', 'account')}</Text>
         <SettingItem
           icon="person"
           title={t('settings', 'profile')}
@@ -327,8 +325,8 @@ export default function Settings() {
 
       {/* Version Info */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>Chess Online v1.0.0</Text>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
+        <Text style={[chessStyles.textSecondary, styles.footerText]}>Chess Online v1.0.0</Text>
+        <Text style={[chessStyles.textSecondary, styles.footerText]}>
           {t('settings', 'madeWith')} ❤️ {t('settings', 'byDeveloper')}
         </Text>
       </View>
@@ -337,9 +335,6 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
     padding: 24,
     paddingTop: 32,
@@ -370,6 +365,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 24,
     borderBottomWidth: 1,
+    marginBottom: 0,
   },
   settingLeft: {
     flexDirection: 'row',

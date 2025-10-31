@@ -1,22 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { useChessColors, useChessStyles, useChessTheme } from '../../../constants/ChessThemeProvider';
 import { auth } from '../../services/firebaseConfig';
 
 const API_URL = 'http://localhost:5000'; // Force localhost for debugging
-console.log('🔧 [AdminPanel] API_URL:', API_URL, 'process.env.API_URL:', process.env.API_URL);
 
 interface User {
   _id: string;

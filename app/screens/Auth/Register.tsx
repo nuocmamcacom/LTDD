@@ -82,18 +82,12 @@ export default function Register() {
     }
     
     try {
-      console.log("🔥 Starting registration for:", email);
-      
       // 1. Tạo user trên Firebase
-      console.log("🔥 Creating Firebase user...");
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("✅ Firebase user created:", userCredential.user.uid);
 
       // 2. Gửi lên backend để tạo user trong MongoDB
-      console.log("📝 Creating backend user...");
       const username = email.split("@")[0]; // tạm lấy username từ email
       await createUser(email, username);
-      console.log("✅ Backend user created");
 
       Alert.alert("Thành công", "Đăng ký thành công! Hãy đăng nhập.");
       navigation.navigate("Login" as never);

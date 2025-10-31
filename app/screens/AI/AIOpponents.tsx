@@ -18,7 +18,6 @@ interface BotConfig {
 }
 
 export default function AIOpponents({ navigation }: any) {
-  console.log('🤖 AIOpponents screen loaded!');
   const [selectedBot, setSelectedBot] = useState<BotConfig | null>(null);
   const { t } = useLanguage();
   const chessTheme = useChessTheme();

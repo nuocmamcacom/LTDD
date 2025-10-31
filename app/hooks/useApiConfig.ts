@@ -31,16 +31,13 @@ function getDefaultApiUrl() {
   }
 
   if (Platform.OS === "web") {
-    console.log("🌐 Using web config");
     return "http://localhost:5000/api";
   }
   if (Platform.OS === "android") {
-    console.log("📱 Using android config");
     return "http://10.0.2.2:5000/api";
   }
   
   // Default to localhost but allow override
-  console.log("ℹ️ Using default config");
   return "http://localhost:5000/api";
 }
 
@@ -59,11 +56,9 @@ export function useApiConfig() {
       const stored = await AsyncStorage.getItem(storageKey);
       
       if (stored) {
-        console.log(`🔄 Loading stored URL for ${Platform.OS}:`, stored);
         setApiUrl(stored);
       } else {
         const defaultUrl = getDefaultApiUrl();
-        console.log(`📝 Using default URL for ${Platform.OS}:`, defaultUrl);
         setApiUrl(defaultUrl);
         // Save default URL for future use
         await AsyncStorage.setItem(storageKey, defaultUrl);
@@ -84,7 +79,6 @@ export function useApiConfig() {
       }
       const normalized = normalizeUrl(newUrl);
       const storageKey = STORAGE_KEYS[Platform.OS as keyof typeof STORAGE_KEYS] || STORAGE_KEYS.default;
-      console.log(`💾 Saving URL for ${Platform.OS}:`, normalized);
       await AsyncStorage.setItem(storageKey, normalized);
       setApiUrl(normalized);
       return true;

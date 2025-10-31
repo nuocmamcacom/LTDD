@@ -1,7 +1,7 @@
 import { Chess, Square } from "chess.js";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { ActivityIndicator, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { AIChessEngine, BotConfig } from "../../services/aiChessEngine";
 import { aiStatsManager } from "../../services/aiStatsManager";
@@ -31,9 +31,15 @@ export default function AIGameBoard({ route, navigation }: Props) {
   const [gameResult, setGameResult] = useState<string | null>(null);
   const [gameStartTime] = useState(Date.now());
   const [moveCount, setMoveCount] = useState(0);
+  
+  // ✅ Promotion states
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{from: Square, to: Square} | null>(null);
 
   const { t } = useLanguage();
-  const themedStyles = useThemedStyles();
+  const chessTheme = useChessTheme();
+  const chessStyles = useChessStyles();
+  const chessColors = useChessColors();
 
   // Responsive calculations
   const isTablet = screenWidth > 768;
@@ -126,7 +132,22 @@ export default function AIGameBoard({ route, navigation }: Props) {
         setFrom(null);
         setLegal([]);
       } else if (legal.includes(sq)) {
-        // Valid move
+        // Check if this is a pawn promotion
+        const game = new Chess(fen);
+        const piece = game.get(from);
+        const isPromotion = piece?.type === 'p' && 
+          ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
+
+        if (isPromotion) {
+          // Show promotion dialog
+          setPendingMove({ from, to: sq });
+          setShowPromotionDialog(true);
+          setFrom(null);
+          setLegal([]);
+          return;
+        }
+
+        // Valid move (non-promotion)
         const success = aiEngine.makePlayerMove(from, sq);
         if (success) {
           await soundManager.playMoveSound();
@@ -147,6 +168,22 @@ export default function AIGameBoard({ route, navigation }: Props) {
         }
       }
     }
+  };
+
+  // Handle promotion piece selection
+  const handlePromotion = async (promotionPiece: 'q' | 'r' | 'b' | 'n') => {
+    if (!pendingMove) return;
+
+    const success = aiEngine.makePlayerMove(pendingMove.from, pendingMove.to, promotionPiece);
+    if (success) {
+      await soundManager.playMoveSound();
+      updateGameState();
+      setMoveCount(prev => prev + 1);
+    }
+
+    // Close dialog and clear pending move
+    setShowPromotionDialog(false);
+    setPendingMove(null);
   };
 
   const algebraicAt = (r: number, c: number): Square => {
@@ -202,7 +239,7 @@ export default function AIGameBoard({ route, navigation }: Props) {
   const dynamicStyles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: themedStyles.theme.colors.background,
+      backgroundColor: chessColors.background,
       padding: isSmallScreen ? 12 : (isTablet ? 24 : 16),
     },
     header: {
@@ -215,7 +252,7 @@ export default function AIGameBoard({ route, navigation }: Props) {
     },
     backButton: {
       fontSize: isTablet ? 18 : 16,
-      color: themedStyles.theme.colors.primary,
+      color: chessColors.primary,
       fontWeight: "600",
     },
     headerInfo: {
@@ -225,14 +262,14 @@ export default function AIGameBoard({ route, navigation }: Props) {
     gameTitle: {
       fontSize: isTablet ? 20 : (isSmallScreen ? 16 : 18),
       fontWeight: "bold",
-      color: themedStyles.theme.colors.text,
+      color: chessColors.text,
     },
     botInfo: {
       fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
-      color: themedStyles.theme.colors.textSecondary,
+      color: chessColors.textSecondary,
     },
     statusContainer: {
-      backgroundColor: themedStyles.theme.colors.backgroundCard,
+      backgroundColor: chessColors.cardBackground,
       padding: isTablet ? 16 : 12,
       borderRadius: 8,
       marginBottom: isTablet ? 16 : 12,
@@ -241,7 +278,7 @@ export default function AIGameBoard({ route, navigation }: Props) {
     statusText: {
       fontSize: isTablet ? 16 : 14,
       fontWeight: "500",
-      color: themedStyles.theme.colors.text,
+      color: chessColors.text,
     },
     aiThinkingContainer: {
       flexDirection: 'row',
@@ -252,10 +289,10 @@ export default function AIGameBoard({ route, navigation }: Props) {
     boardContainer: {
       alignSelf: "center",
       borderWidth: 2,
-      borderColor: themedStyles.theme.colors.border,
+      borderColor: chessColors.border,
       borderRadius: 8,
       marginBottom: isTablet ? 20 : 16,
-      shadowColor: themedStyles.theme.colors.text,
+      shadowColor: chessColors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -285,14 +322,14 @@ export default function AIGameBoard({ route, navigation }: Props) {
     },
     controlButton: {
       flex: isSmallScreen ? 0 : 1,
-      backgroundColor: themedStyles.theme.colors.secondary,
+      backgroundColor: chessColors.buttonSecondary,
       padding: isTablet ? 16 : (isSmallScreen ? 10 : 12),
       borderRadius: 8,
       alignItems: 'center',
       marginHorizontal: isSmallScreen ? 0 : 6,
     },
     resetButton: {
-      backgroundColor: themedStyles.theme.colors.accent,
+      backgroundColor: chessColors.error,
     },
     controlButtonText: {
       color: '#fff',
@@ -311,7 +348,7 @@ export default function AIGameBoard({ route, navigation }: Props) {
       zIndex: 1000,
     },
     gameResultContainer: {
-      backgroundColor: themedStyles.theme.colors.backgroundCard,
+      backgroundColor: chessColors.cardBackground,
       padding: isTablet ? 32 : 24,
       borderRadius: 16,
       alignItems: 'center',
@@ -320,7 +357,7 @@ export default function AIGameBoard({ route, navigation }: Props) {
     gameResultText: {
       fontSize: isTablet ? 24 : 20,
       fontWeight: 'bold',
-      color: themedStyles.theme.colors.text,
+      color: chessColors.text,
       marginBottom: 16,
       textAlign: 'center',
     },
@@ -329,18 +366,62 @@ export default function AIGameBoard({ route, navigation }: Props) {
       gap: 12,
     },
     gameResultButton: {
-      backgroundColor: themedStyles.theme.colors.primary,
+      backgroundColor: chessColors.primary,
       paddingHorizontal: 20,
       paddingVertical: 12,
       borderRadius: 8,
     },
     gameResultButtonSecondary: {
-      backgroundColor: themedStyles.theme.colors.secondary,
+      backgroundColor: chessColors.buttonSecondary,
     },
     gameResultButtonText: {
       color: '#fff',
       fontWeight: '600',
       fontSize: 16,
+    },
+    // Promotion dialog styles
+    promotionOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    promotionDialog: {
+      padding: 20,
+      borderRadius: 16,
+      margin: 20,
+      alignItems: 'center',
+      minWidth: 280,
+    },
+    promotionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      textAlign: 'center',
+    },
+    promotionPieces: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      width: '100%',
+    },
+    promotionPiece: {
+      alignItems: 'center',
+      padding: 12,
+      borderRadius: 12,
+      minWidth: 60,
+      margin: 4,
+    },
+    promotionPieceText: {
+      fontSize: 32,
+      marginBottom: 4,
+    },
+    promotionLabel: {
+      fontSize: 12,
+      textAlign: 'center',
     },
   });
 
@@ -364,13 +445,13 @@ export default function AIGameBoard({ route, navigation }: Props) {
       <View style={dynamicStyles.statusContainer}>
         {isAIThinking ? (
           <View style={dynamicStyles.aiThinkingContainer}>
-            <ActivityIndicator size="small" color={themedStyles.theme.colors.primary} />
+            <ActivityIndicator size="small" color={chessColors.primary} />
             <Text style={dynamicStyles.statusText}>
               {botConfig.name} is thinking...
             </Text>
           </View>
         ) : gameResult ? (
-          <Text style={[dynamicStyles.statusText, { color: themedStyles.theme.colors.accent }]}>
+          <Text style={[dynamicStyles.statusText, { color: chessColors.success }]}>
             {gameResult}
           </Text>
         ) : (
@@ -424,6 +505,67 @@ export default function AIGameBoard({ route, navigation }: Props) {
           </View>
         </View>
       )}
+
+      {/* Promotion Dialog */}
+      <Modal
+        visible={showPromotionDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPromotionDialog(false);
+          setPendingMove(null);
+        }}
+      >
+        <View style={dynamicStyles.promotionOverlay}>
+          <View style={[dynamicStyles.promotionDialog, { backgroundColor: chessColors.backgroundSecondary }]}>
+            <Text style={[dynamicStyles.promotionTitle, { color: chessColors.text }]}>
+              {t('game', 'choosePromotionPiece') || 'Choose piece to promote to:'}
+            </Text>
+            
+            <View style={dynamicStyles.promotionPieces}>
+              <TouchableOpacity 
+                style={[dynamicStyles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('q')}
+              >
+                <Text style={dynamicStyles.promotionPieceText}>♕</Text>
+                <Text style={[dynamicStyles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'queen') || 'Queen'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[dynamicStyles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('r')}
+              >
+                <Text style={dynamicStyles.promotionPieceText}>♖</Text>
+                <Text style={[dynamicStyles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'rook') || 'Rook'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[dynamicStyles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('b')}
+              >
+                <Text style={dynamicStyles.promotionPieceText}>♗</Text>
+                <Text style={[dynamicStyles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'bishop') || 'Bishop'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[dynamicStyles.promotionPiece, { backgroundColor: chessColors.background }]} 
+                onPress={() => handlePromotion('n')}
+              >
+                <Text style={dynamicStyles.promotionPieceText}>♘</Text>
+                <Text style={[dynamicStyles.promotionLabel, { color: chessColors.textSecondary }]}>
+                  {t('game', 'knight') || 'Knight'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

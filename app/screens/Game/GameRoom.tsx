@@ -128,41 +128,26 @@ export default function GameRoom({ route, navigation }: any) {
 
   useEffect(() => {
     const s = getSocket();
-    console.log("🔌 Setting up socket for room:", roomId);
-    console.log("🔌 Socket instance:", s);
-    console.log("🔌 Socket connected:", s.connected);
-    console.log("🔌 Socket ID:", s.id);
     
     if (!s.connected) {
-      console.log("🔌 Socket not connected, connecting...");
       s.connect();
     } else {
-      console.log("🔌 Socket already connected, joining room immediately");
       s.emit("joinRoom", { roomId, email: me });
     }
 
     const onConnect = () => {
-      console.log("✅ Socket connected - joining room...");
       s.emit("joinRoom", { roomId, email: me });
-      console.log("🚀 Emitted joinRoom:", { roomId, email: me });
       
       // Test socket communication
       s.emit("test_message", { from: me, roomId, message: "Mobile client connected" });
-      console.log("🚀 Emitted test_message");
     };
     const onSystem = (msg: any) => {
       // Handle system messages if needed
     };
     const onMove = (payload: any) => {
-      console.log("♟️ Socket move received:", payload);
-      console.log("🔍 My email:", me, "Move from:", payload?.email);
-      
       // Apply move if it's not from current player
       if (payload?.email !== me) {
-        console.log("✅ Applying remote move FEN:", payload?.fen);
         setRemoteFen(payload?.fen ?? null);
-      } else {
-        console.log("🚫 Ignoring own move");
       }
     };
     const onRoomDeleted = (payload: any) => {
@@ -174,8 +159,6 @@ export default function GameRoom({ route, navigation }: any) {
     };
 
     const onPlayerReady = (payload: any) => {
-      console.log("✅ Player ready:", payload.email);
-      
       setPlayersReady(prev => {
         if (!prev.includes(payload.email)) {
           const newReady = [...prev, payload.email];
@@ -232,13 +215,7 @@ export default function GameRoom({ route, navigation }: any) {
   // Debug color assignment
   React.useEffect(() => {
     if (room && me) {
-      console.log("🎮 Color Assignment Debug:", {
-        myEmail: me,
-        hostEmail: room.hostEmail,
-        members: room.members,
-        assignedColor: myColor,
-        isHost: room.hostEmail === me
-      });
+      // Color assignment logic here
     }
   }, [room, me, myColor]);
 
@@ -324,7 +301,6 @@ export default function GameRoom({ route, navigation }: any) {
         gameTimeMinutes={room?.timeControlMinutes || 10} // ⏱️ Use room's time control
         onMove={(san, fen) => {
           const s = getSocket();
-          console.log("🚀 Emitting move:", { roomId, san, fen, email: me });
           s.emit("move", { roomId, san, fen, email: me });
           // Clear remoteFen to avoid re-applying
           setRemoteFen(null);

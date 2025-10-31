@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
 import ThemeToggle from "../../components/ThemeToggle";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { getUserPuzzleStats } from "../../services/api";
 import { auth } from "../../services/firebaseConfig";
+import { useChessColors, useChessStyles, useChessTheme } from '@/constants/ChessThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,10 +40,10 @@ export default function HomeScreen({ navigation }: any) {
           setIsAdmin(userData.role === 'admin');
         }
       } catch (adminCheckError) {
-        console.log("Could not check admin status");
+        // Could not check admin status
       }
     } catch (error) {
-      console.log("Could not load user stats (probably first time)");
+      // Could not load user stats (probably first time)
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,6 @@ export default function HomeScreen({ navigation }: any) {
       subtitle: t('ai', 'subtitle'),
       color: chessColors.warning,
       onPress: () => {
-        console.log('🤖 AI Opponents button pressed!');
         navigation.navigate('AIOpponents');
       }
     },
@@ -89,7 +88,6 @@ export default function HomeScreen({ navigation }: any) {
       subtitle: t('friends', 'friendsList'),
       color: chessColors.buttonSecondary,
       onPress: () => {
-        console.log('👥 Friends button pressed!');
         navigation.navigate('FriendsList');
       }
     },

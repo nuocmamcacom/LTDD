@@ -16,6 +16,9 @@ class GoogleAuthService {
   private async initialize() {
     if (this.initialized) return;
     
+    console.log('🚀 [GoogleAuth] Initializing...');
+    console.log('🔍 [GoogleAuth] Platform:', Platform.OS);
+    
     this.initialized = true;
     await this.configure();
   }
@@ -23,8 +26,10 @@ class GoogleAuthService {
   private async loadGoogleSignin() {
     if (!this.isWebPlatform && !this.GoogleSignin) {
       try {
+        console.log('📦 [GoogleAuth] Loading module...');
         const module = await import('@react-native-google-signin/google-signin');
         this.GoogleSignin = module.GoogleSignin;
+        console.log('✅ [GoogleAuth] Module loaded');
         return true;
       } catch (error: any) {
         console.error('❌ [GoogleAuth] Load failed:', error.message);
@@ -37,6 +42,7 @@ class GoogleAuthService {
   private async configure() {
     try {
       const googleClientId = Constants.expoConfig?.extra?.GOOGLE_CLIENT_ID;
+      console.log('🔑 [GoogleAuth] Client ID found:', !!googleClientId);
       
       if (!googleClientId) {
         console.error('❌ [GoogleAuth] No Client ID');
@@ -47,7 +53,9 @@ class GoogleAuthService {
         const loaded = await this.loadGoogleSignin();
         if (loaded && this.GoogleSignin) {
           try {
+            console.log('🔧 [GoogleAuth] Testing TurboModule access...');
             this.GoogleSignin.configure({ webClientId: googleClientId });
+            console.log('✅ [GoogleAuth] Mobile configured successfully');
           } catch (configError: any) {
             console.error('❌ [GoogleAuth] TurboModule config failed:', {
               message: configError.message,
@@ -62,6 +70,8 @@ class GoogleAuthService {
         } else {
           console.warn('⚠️ [GoogleAuth] Module not loaded');
         }
+      } else {
+        console.log('✅ [GoogleAuth] Web platform ready');
       }
     } catch (error: any) {
       console.error('❌ [GoogleAuth] Config error:', error.message);
@@ -72,34 +82,44 @@ class GoogleAuthService {
     await this.initialize(); // Initialize only when needed
     
     try {
+      console.log('🔐 [GoogleAuth] Sign-in start...');
       
       if (this.isWebPlatform) {
+        console.log('🌐 [GoogleAuth] Using web method...');
         const provider = new GoogleAuthProvider();
         provider.addScope('email');
         provider.addScope('profile');
         
         const result = await signInWithPopup(auth, provider);
+        console.log('✅ [GoogleAuth] Web success:', result.user.email);
         return result.user;
       } else {
+        console.log('📱 [GoogleAuth] Attempting mobile method...');
+        
         await this.loadGoogleSignin();
         if (!this.GoogleSignin) {
           console.warn('⚠️ [GoogleAuth] Native module not available');
           throw new Error('Native Google SignIn not available in Expo Go');
         }
         
+        console.log('🔍 [GoogleAuth] Testing hasPlayServices...');
         await this.GoogleSignin.hasPlayServices();
         
+        console.log('🚀 [GoogleAuth] Starting native sign-in...');
         const userInfo = await this.GoogleSignin.signIn();
         
+        console.log('🎫 [GoogleAuth] Getting tokens...');
         const { idToken } = await this.GoogleSignin.getTokens();
         
         if (!idToken) {
           throw new Error('No ID token received');
         }
         
+        console.log('🔥 [GoogleAuth] Creating Firebase credential...');
         const credential = GoogleAuthProvider.credential(idToken);
         const result = await signInWithCredential(auth, credential);
         
+        console.log('✅ [GoogleAuth] Mobile success:', result.user.email);
         return result.user;
       }
     } catch (error: any) {
@@ -125,9 +145,13 @@ class GoogleAuthService {
     await this.initialize(); // Initialize only when needed
     
     try {
+      console.log('🔍 [GoogleAuth] Checking availability...');
+      
       if (this.isWebPlatform) {
+        console.log('✅ [GoogleAuth] Web platform - available');
         return true;
       } else {
+        console.log('📱 [GoogleAuth] Mobile platform - checking native module...');
         await this.loadGoogleSignin();
         
         if (!this.GoogleSignin) {
@@ -137,7 +161,9 @@ class GoogleAuthService {
         
         // Test if we can access the module methods
         try {
+          console.log('🧪 [GoogleAuth] Testing module methods...');
           const configured = await this.GoogleSignin.isSignedIn();
+          console.log('✅ [GoogleAuth] Native module accessible, configured:', configured);
           return true;
         } catch (testError: any) {
           console.warn('❌ [GoogleAuth] Module method test failed:', testError.message);
@@ -155,6 +181,7 @@ class GoogleAuthService {
 
   async signOut() {
     await auth.signOut();
+    console.log('✅ [GoogleAuth] Signed out');
   }
 }
 

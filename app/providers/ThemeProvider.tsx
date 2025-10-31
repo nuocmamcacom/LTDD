@@ -28,7 +28,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
       if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
         setCurrentTheme(savedTheme as ThemeMode);
-        console.log(`🎨 Theme loaded: ${savedTheme}`);
       }
     } catch (error) {
       console.error('Failed to load saved theme:', error);
@@ -41,7 +40,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
       setCurrentTheme(newTheme);
-      console.log(`🎨 Theme changed to: ${newTheme}`);
     } catch (error) {
       console.error('Failed to save theme:', error);
     }

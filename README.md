@@ -139,7 +139,8 @@ chess-online/
 │   ├── screens/           # App screens
 │   ├── hooks/             # Custom React hooks
 │   ├── services/          # API and external services
-│   └── navigation/        # Navigation configuration
+│   ├── navigation/        # Navigation configuration
+│   └── providers/         # Context providers
 ├── backend/               # Node.js backend
 │   └── src/
 │       ├── models/        # Database models
@@ -147,8 +148,40 @@ chess-online/
 │       ├── controllers/   # Route controllers
 │       └── sockets/       # Socket.IO handlers
 ├── assets/                # Static assets
-└── constants/             # App constants
+├── constants/             # Theme and configuration constants
+└── archive/               # Archived/unused files (see below)
 ```
+
+## 📂 Archived Files
+
+During development, unused and legacy files have been safely moved to the `archive/` directory. These files are retained for reference but are not part of the active codebase:
+
+### Archived Components
+- **animations/** - Unused animation components (FadeInView, PulseView, ScaleInView, SlideInView)
+- **ApiConfigModal.tsx** - API configuration modal (unused)
+- **ChessStyleDemo.tsx** - Chess theme demonstration component 
+- **LanguageSelector.tsx** - Language switching modal (unused)
+- **ThemeTestCard.tsx** - Theme testing UI component
+- **Root-level components/** - Expo template components (external-link, themed-text, etc.)
+
+### Archived Screens
+- **Dashboard_old.tsx** - Legacy dashboard backup
+- **ManagerUsers.tsx** - Unused admin user management screen
+- **RoomDetail.tsx** - Unused room detail screen  
+- **Spectator.tsx** - Unused game spectator screen
+
+### Archived Hooks & Navigation
+- **useThemedStyles.ts** - Legacy theme hook (replaced by Chess theme system)
+- **GameNavigation.tsx** - Empty navigation file
+- **Root-level hooks/** - Expo template hooks (use-color-scheme, use-theme-color)
+
+### Theme System Migration
+The project has been fully migrated from the old theme system to a comprehensive Chess theme system:
+- **Old**: `useThemedStyles()` with generic styling
+- **New**: Chess-specific theme with `useChessColors()`, `useChessStyles()`, `useChessTheme()`
+- **Benefits**: Consistent chess-themed design, better maintainability, type safety
+
+**Note**: Archived files can be restored if needed but should not be referenced in active development.
 
 ## 🛠️ Development
 

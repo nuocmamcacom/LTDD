@@ -1,21 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { getTheme } from '../constants/theme';
-import { useTheme } from '../providers/ThemeProvider';
+import { useChessTheme } from '../../constants/ChessThemeProvider';
 
 interface ThemeWrapperProps {
   children: React.ReactNode;
 }
 
 export const ThemeWrapper: React.FC<ThemeWrapperProps> = ({ children }) => {
-  const { theme: themeMode } = useTheme();
-  const theme = getTheme(themeMode);
+  const { isDark, colors } = useChessTheme();
 
   return (
     <>
       <StatusBar 
-        style={themeMode === 'light' ? 'dark' : 'light'} 
-        backgroundColor={theme.colors.background}
+        style={isDark ? 'light' : 'dark'} 
+        backgroundColor={colors.background}
       />
       {children}
     </>

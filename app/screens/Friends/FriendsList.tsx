@@ -31,12 +31,8 @@ export default function FriendsList({ navigation }: any) {
 
   const loadFriends = useCallback(async () => {
     try {
-      console.log("👥 Loading friends for:", userEmail);
-      
       const response = await getFriends(userEmail);
       const friendsData = response.data || [];
-      
-      console.log("👥 Raw friends data:", friendsData);
       
       // Transform API data to match our Friend type
       const transformedFriends: Friend[] = friendsData.map((friend: any) => ({
@@ -51,7 +47,6 @@ export default function FriendsList({ navigation }: any) {
       }));
       
       setFriends(transformedFriends);
-      console.log("✅ Loaded friends:", transformedFriends.length);
     } catch (error) {
       console.error("Error loading friends:", error);
       Alert.alert(t('common', 'error'), t('friends', 'errorLoadFriends'));
@@ -69,8 +64,6 @@ export default function FriendsList({ navigation }: any) {
     
     // Subscribe to friend updates
     const unsubscribe = friendsManager.subscribeToUpdates((update) => {
-      console.log("📨 Friend update in FriendsList:", update);
-      
       if (update.type === "status_update" && update.friendEmail && update.status) {
         // Update friend's online status in real-time
         setFriends(currentFriends =>
@@ -138,8 +131,6 @@ export default function FriendsList({ navigation }: any) {
         { 
           text: t('friends', 'challenge'), 
           onPress: () => {
-            // TODO: Implement challenge logic
-            console.log("Challenging friend:", friend.email);
             Alert.alert(t('friends', 'challengeSent'), t('friends', 'challengeSentMessage').replace('{name}', friend.name));
           }
         }
@@ -148,24 +139,15 @@ export default function FriendsList({ navigation }: any) {
   };
 
   const removeFriend = (friend: Friend) => {
-    console.log("🔥 removeFriend function called with:", friend);
-    
     // For now, skip confirmation and go straight to removal for testing
-    console.log("⚠️ Skipping confirmation dialog for debugging");
     handleRemoveFriend(friend);
   };
 
   const handleRemoveFriend = async (friend: Friend) => {
     try {
-      console.log("🗑️ Starting to remove friend:", { userEmail, friendEmail: friend.email });
       const response = await removeFriendAPI(userEmail, friend.email);
-      console.log("🗑️ Remove friend API response:", response);
       
       setFriends(friends.filter(f => f.email !== friend.email));
-      console.log("🗑️ Friend removed successfully from local state");
-      
-      // Use simple notification for testing
-      console.log("✅ Success:", `${friend.name} removed from friends list`);
     } catch (error) {
       console.error("❌ Error removing friend:", error);
       console.error("❌ Error details:", (error as any)?.response?.data || (error as any)?.message);
@@ -218,7 +200,6 @@ export default function FriendsList({ navigation }: any) {
         <TouchableOpacity 
           style={[styles.actionButton, styles.removeButton]}
           onPress={() => {
-            console.log("🔴 Remove button pressed for friend:", friend.email);
             removeFriend(friend);
           }}
         >

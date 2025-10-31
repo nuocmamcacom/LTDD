@@ -25,9 +25,6 @@ export function useBanStatus() {
           return;
         }
 
-        console.log('🔍 Checking ban status for:', userEmail);
-        
-        // Check user ban status from backend
         const response = await fetch(`${API_URL}/api/users/${userEmail}`);
         if (response.ok) {
           const userData = await response.json();
@@ -40,14 +37,7 @@ export function useBanStatus() {
           };
           
           setBanInfo(banData);
-          
-          if (banData.isBanned) {
-            console.log('🚫 User is banned:', banData);
-          } else {
-            console.log('✅ User is not banned');
-          }
         } else {
-          console.log('⚠️ Could not check ban status, assuming not banned');
           setBanInfo({ isBanned: false });
         }
       } catch (error) {
@@ -61,11 +51,9 @@ export function useBanStatus() {
 
     // Check ban status when auth state changes
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('🔍 [useBanStatus] Auth state changed:', user?.email || 'No user');
       if (user) {
         checkBanStatus();
       } else {
-        console.log('🔍 [useBanStatus] No user, clearing ban info');
         setBanInfo({ isBanned: false });
         setLoading(false);
       }

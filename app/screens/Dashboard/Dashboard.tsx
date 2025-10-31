@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { createRoom, deleteRoom, getRooms, joinRoom } from "../../services/api";
 import { auth } from "../../services/firebaseConfig";
@@ -19,8 +18,6 @@ type Room = {
 };
 
 export default function Dashboard({ navigation }: any) {
-  console.log('🏠 Dashboard component mounted');
-  
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -30,7 +27,6 @@ export default function Dashboard({ navigation }: any) {
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [selectedTimeControl, setSelectedTimeControl] = useState(10); // ⏱️ Default 10 minutes
   const { t } = useLanguage();
-  const themedStyles = useThemedStyles();
   const chessTheme = useChessTheme();
   const chessStyles = useChessStyles();
   const chessColors = useChessColors();
@@ -38,11 +34,9 @@ export default function Dashboard({ navigation }: any) {
   const email = auth.currentUser?.email || "";
 
   const fetchRooms = async () => {
-    console.log('🔄 Fetching rooms...');
     setLoadingList(true);
     try {
       const res = await getRooms();
-      console.log('✅ Rooms fetched:', res.data?.length || 0, 'rooms');
       setRooms(res.data || []);
     } catch (err: any) {
       console.error('❌ Error fetching rooms:', err);
@@ -52,17 +46,14 @@ export default function Dashboard({ navigation }: any) {
     }
   };
 
-  const handleCreateRoom = async () => {
-    console.log('🏗️ Creating room with time control:', selectedTimeControl, 'minutes');
+  const createAndJoinRoom = async () => {
     if (!email) {
       return Alert.alert(t('dashboard', 'notLoggedIn'), t('dashboard', 'pleaseLogInAgainToCreateRoom'));
     }
     const roomId = Math.random().toString(36).slice(2, 8);
-    console.log('🏗️ Generated room ID:', roomId);
     setCreating(true);
     try {
       await createRoom(roomId, email, selectedTimeControl);
-      console.log('✅ Room created successfully with', selectedTimeControl, 'minutes');
       await fetchRooms();
       navigation.navigate("GameRoom", { roomId });
     } catch (err: any) {
@@ -76,14 +67,12 @@ export default function Dashboard({ navigation }: any) {
 
 
   const handleJoinRoom = async (roomId: string) => {
-    console.log('🎯 Joining room:', roomId, 'with email:', email);
     if (!email) {
       return Alert.alert(t('dashboard', 'notLoggedIn'), t('dashboard', 'pleaseLogInAgain'));
     }
     
     try {
       const response = await joinRoom(roomId, email);
-      console.log('✅ Successfully joined room:', response.data);
       
       await fetchRooms(); // Refresh room list
       setSelectedRoom(null); // Close modal
@@ -97,14 +86,10 @@ export default function Dashboard({ navigation }: any) {
   };
 
   const handleDeleteRoom = async (roomId: string) => {
-    console.log("🗑️ Delete button pressed for room:", roomId);
-    console.log("🗑️ Current user email:", email);
-    
     if (!email) {
       return Alert.alert(t('dashboard', 'notLoggedIn'), t('dashboard', 'pleaseLogInAgainToDeleteRoom'));
     }
     
-    console.log("🗑️ Showing confirmation dialog...");
     setRoomToDelete(roomId);
     setDeleteConfirmVisible(true);
   };
@@ -112,24 +97,17 @@ export default function Dashboard({ navigation }: any) {
   const confirmDeleteRoom = async () => {
     if (!roomToDelete) return;
     
-    console.log("🗑️ Delete confirmed, starting process...");
     setDeleting(roomToDelete);
     setDeleteConfirmVisible(false);
     
     try {
-      console.log("🗑️ Calling deleteRoom API...");
       await deleteRoom(roomToDelete, email);
-      console.log("🗑️ API call successful");
       
       const socket = getSocket();
       if (socket.connected) {
-        console.log("🗑️ Emitting socket event...");
         socket.emit("roomDeleted", { roomId: roomToDelete, deletedBy: email });
-      } else {
-        console.log("🗑️ Socket not connected");
       }
       
-      console.log("🗑️ Refreshing room list...");
       await fetchRooms();
       Alert.alert(t('dashboard', 'success'), t('dashboard', 'roomDeletedSuccessfully'));
     } catch (err: any) {
@@ -138,19 +116,13 @@ export default function Dashboard({ navigation }: any) {
       const errorMsg = err?.response?.data?.error || t('dashboard', 'unableToDeleteRoom');
       Alert.alert(t('dashboard', 'error'), errorMsg);
     } finally {
-      console.log("🗑️ Clearing deleting state");
       setDeleting(null);
       setRoomToDelete(null);
     }
   };
 
   useEffect(() => {
-    console.log('🏠 Dashboard useEffect - mounting, fetching rooms...');
     fetchRooms();
-    
-    return () => {
-      console.log('🏠 Dashboard useEffect - unmounting...');
-    };
   }, []);
 
   const dynamicStyles = StyleSheet.create({
@@ -243,7 +215,7 @@ export default function Dashboard({ navigation }: any) {
     },
     emptyText: {
       textAlign: "center",
-      color: themedStyles.theme.colors.textMuted,
+      color: chessColors.textSecondary,
       marginTop: 32,
       fontSize: 16,
     },
@@ -259,7 +231,7 @@ export default function Dashboard({ navigation }: any) {
     timeControlLabel: {
       fontSize: 16,
       fontWeight: '600',
-      color: themedStyles.theme.colors.text,
+      color: chessColors.text,
       marginBottom: 8, // Reduced from 12 to 8
       textAlign: 'center',
     },
@@ -273,9 +245,9 @@ export default function Dashboard({ navigation }: any) {
       paddingVertical: 10, // Reduced from 12 to 10
       paddingHorizontal: 8,
       borderRadius: 8,
-      backgroundColor: themedStyles.theme.colors.backgroundSecondary,
+      backgroundColor: chessColors.backgroundSecondary,
       borderWidth: 2,
-      borderColor: themedStyles.theme.colors.border,
+      borderColor: chessColors.border,
       alignItems: 'center',
     },
     timeControlButtonActive: {
@@ -285,7 +257,7 @@ export default function Dashboard({ navigation }: any) {
     timeControlButtonText: {
       fontSize: 14,
       fontWeight: '600',
-      color: themedStyles.theme.colors.text,
+      color: chessColors.text,
     },
     timeControlButtonTextActive: {
       color: 'white',
@@ -322,7 +294,6 @@ export default function Dashboard({ navigation }: any) {
               <TouchableOpacity
                 style={[dynamicStyles.modalButton, { backgroundColor: chessColors.textSecondary }]}
                 onPress={() => {
-                  console.log("🗑️ Delete cancelled");
                   setDeleteConfirmVisible(false);
                   setRoomToDelete(null);
                 }}
@@ -426,7 +397,6 @@ export default function Dashboard({ navigation }: any) {
                 <TouchableOpacity 
                   style={dynamicStyles.deleteButton}
                   onPress={(e) => {
-                    console.log("🗑️ Delete button touched for room:", item.roomId);
                     e.stopPropagation();
                     handleDeleteRoom(item.roomId);
                   }}
@@ -496,7 +466,7 @@ export default function Dashboard({ navigation }: any) {
 
       <TouchableOpacity
         style={[dynamicStyles.button, { backgroundColor: chessColors.success }]}
-        onPress={handleCreateRoom}
+        onPress={createAndJoinRoom}
         disabled={creating}
       >
         {creating ? <ActivityIndicator color={chessColors.textInverse} /> : <Text style={dynamicStyles.buttonText}>{t('dashboard', 'createRoom')}</Text>}

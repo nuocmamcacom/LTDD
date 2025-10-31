@@ -25,16 +25,13 @@ class ApiConnectionManager {
       return this.currentConfig?.baseUrl || this.getDefaultUrl();
     }
     
-    console.log('🔌 [API] Initializing connection manager...');
     this.initialized = true;
     
     // Try to load saved URL first
     const savedUrl = await this.loadSavedUrl();
     if (savedUrl) {
-      console.log('📂 [API] Found saved URL:', savedUrl);
       const isReachable = await this.testConnection(savedUrl);
       if (isReachable) {
-        console.log('✅ [API] Saved URL is reachable');
         // Set the config with the working saved URL
         this.currentConfig = {
           host: this.getLocalIpFromUrl(savedUrl),
@@ -43,8 +40,6 @@ class ApiConnectionManager {
           isReachable: true
         };
         return savedUrl;
-      } else {
-        console.log('❌ [API] Saved URL not reachable, will auto-detect');
       }
     }
 
@@ -59,7 +54,6 @@ class ApiConnectionManager {
       const savedUrl = await AsyncStorage.getItem(key);
       
       if (savedUrl) {
-        console.log(`🔄 Loading stored URL for ${platform}:`, savedUrl);
         return savedUrl;
       }
       
@@ -75,7 +69,6 @@ class ApiConnectionManager {
       const platform = Platform.OS;
       const key = `${API_URL_STORAGE_KEY}_${platform}`;
       await AsyncStorage.setItem(key, url);
-      console.log(`💾 Saving URL for ${platform}:`, url);
     } catch (error) {
       console.warn('⚠️ [API] Failed to save URL:', error);
     }
@@ -83,8 +76,6 @@ class ApiConnectionManager {
 
   private async testConnection(baseUrl: string): Promise<boolean> {
     try {
-      console.log('🧪 [API] Testing connection to:', baseUrl);
-      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
       
@@ -99,17 +90,14 @@ class ApiConnectionManager {
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        console.log('✅ [API] Connection test successful');
         return true;
       } else {
-        console.log('❌ [API] Connection test failed - invalid response');
         return false;
       }
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        console.log('⏱️ [API] Connection test timed out');
       } else {
-        console.log('❌ [API] Connection test failed:', error.message);
+        console.error('❌ [API] Connection test failed:', error.message);
       }
       return false;
     }
@@ -117,23 +105,16 @@ class ApiConnectionManager {
 
   private async autoDetectApiUrl(): Promise<string> {
     if (this.testingInProgress) {
-      console.log('🔄 [API] Auto-detection already in progress...');
       return this.currentConfig?.baseUrl || this.getDefaultUrl();
     }
 
     this.testingInProgress = true;
-    console.log('🔍 [API] Starting auto-detection...');
 
     try {
       const candidates = this.generateUrlCandidates();
-      console.log('🎯 [API] Testing candidates:', candidates.map(c => c.baseUrl));
-
       for (const candidate of candidates) {
-        console.log(`🧪 [API] Testing ${candidate.host}:${candidate.port}...`);
-        
         const isReachable = await this.testConnection(candidate.baseUrl);
         if (isReachable) {
-          console.log('✅ [API] Found working API at:', candidate.baseUrl);
           candidate.isReachable = true;
           this.currentConfig = candidate;
           await this.saveUrl(candidate.baseUrl);
@@ -142,7 +123,6 @@ class ApiConnectionManager {
       }
 
       // If no candidate works, use default
-      console.log('⚠️ [API] No reachable API found, using default');
       const defaultUrl = this.getDefaultUrl();
       this.currentConfig = {
         host: this.getLocalIpFromUrl(defaultUrl),
@@ -237,7 +217,6 @@ class ApiConnectionManager {
   }
 
   async refreshConnection(): Promise<string> {
-    console.log('🔄 [API] Refreshing connection...');
     this.currentConfig = null;
     return await this.autoDetectApiUrl();
   }

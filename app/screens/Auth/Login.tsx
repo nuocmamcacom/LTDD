@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { Audio } from 'expo-av';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, User } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
@@ -86,7 +86,6 @@ export default function Login() {
   }, []);
 
   const playEpicSound = async () => {
-    console.log('🎵 Starting epic sound for login celebration...');
     try {
       // Use expo-av for both web and mobile
       await Audio.setAudioModeAsync({
@@ -96,9 +95,7 @@ export default function Login() {
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
-      console.log('🔊 Audio mode set');
 
-      console.log('📂 Loading epic sound...');
       const { sound } = await Audio.Sound.createAsync(
         epicSound,
         { 
@@ -107,16 +104,14 @@ export default function Login() {
           volume: 0.8  // 80% volume as requested
         }
       );
-      console.log('✅ Epic sound started playing at 80% volume!');
 
       // Stop after 5 seconds as requested
       setTimeout(async () => {
         try {
           await sound.stopAsync();
           await sound.unloadAsync();
-          console.log('⏹️ Epic sound stopped after 5 seconds');
         } catch (error) {
-          console.log('❌ Sound stop error:', error);
+          console.error('❌ Sound stop error:', error);
         }
       }, 5000);
 
@@ -125,8 +120,7 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSignIn = async (user: any) => {
-    console.log('✅ Google Sign-In successful:', user.email);
+  const handleGoogleSuccess = async (user: User) => {
     Alert.alert(t('common', 'success'), `${t('auth', 'googleLoginSuccess')} ${user.displayName || user.email}`);
     await playEpicSound(); // Epic sound enabled for Google login
   };
@@ -190,7 +184,7 @@ export default function Login() {
 
           {/* Google Sign-In Button */}
           <GoogleSignInButton
-            onSuccess={handleGoogleSignIn}
+            onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             style={dynamicStyles.googleButton}
           />

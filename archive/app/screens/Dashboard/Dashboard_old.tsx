@@ -1,14 +1,13 @@
+import { theme } from "@/app/constants/theme";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ApiConfigModal } from "../../components/ApiConfigModal";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { useApiConfig } from "../../hooks/useApiConfig";
+import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { createRoom, deleteRoom, getRooms, joinRoom } from "../../services/api";
 import { auth } from "../../services/firebaseConfig";
 import { getSocket } from "../../services/socket";
-import ThemeTestCard from "../../components/ThemeTestCard";
-import { theme } from "@/app/constants/theme";
 
 type Room = {
   _id: string;

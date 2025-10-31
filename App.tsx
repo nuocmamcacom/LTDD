@@ -3,22 +3,19 @@ import { ThemeWrapper } from "./app/components/ThemeWrapper";
 import MainNavigation from "./app/navigation/MainNavigation";
 import { ApiProvider } from "./app/providers/ApiProvider";
 import { LanguageProvider } from "./app/providers/LanguageProvider";
-import { ThemeProvider } from "./app/providers/ThemeProvider";
 import { ChessThemeProvider } from "./constants/ChessThemeProvider";
 import "./constants/globalWebStyles";
 
 export default function App() {
   return (
     <ChessThemeProvider>
-      <ThemeProvider>
-        <LanguageProvider>
-          <ApiProvider>
-            <ThemeWrapper>
-              <MainNavigation />
-            </ThemeWrapper>
-          </ApiProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ApiProvider>
+          <ThemeWrapper>
+            <MainNavigation />
+          </ThemeWrapper>
+        </ApiProvider>
+      </LanguageProvider>
     </ChessThemeProvider>
   );
 }

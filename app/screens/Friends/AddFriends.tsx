@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { useChessColors, useChessStyles, useChessTheme } from "../../../constants/ChessThemeProvider";
 import { useLanguage } from "../../providers/LanguageProvider";
 import { searchUsers as searchUsersAPI, sendFriendRequest } from "../../services/api";
 import { auth } from "../../services/firebaseConfig";
@@ -22,7 +22,9 @@ export default function AddFriends({ navigation }: any) {
   const [searching, setSearching] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useLanguage();
-  const themedStyles = useThemedStyles();
+  const chessTheme = useChessTheme();
+  const chessStyles = useChessStyles();
+  const chessColors = useChessColors();
   
   const userEmail = auth.currentUser?.email || "";
 
@@ -59,12 +61,8 @@ export default function AddFriends({ navigation }: any) {
 
     setSearching(true);
     try {
-      console.log("🔍 Searching users:", query);
-      
       const response = await searchUsersAPI(query, userEmail, 20);
       const usersData = response.data || [];
-      
-      console.log("🔍 Raw search response:", usersData);
       
       // Transform API data to match our User type
       const transformedUsers: User[] = usersData.map((user: any) => ({
@@ -78,7 +76,6 @@ export default function AddFriends({ navigation }: any) {
       }));
       
       setSearchResults(transformedUsers);
-      console.log("✅ Search results:", transformedUsers.length);
     } catch (error) {
       console.error("Error searching users:", error);
       Alert.alert(t('common', 'error'), t('friends', 'errorSearchUsers'));
@@ -89,10 +86,7 @@ export default function AddFriends({ navigation }: any) {
 
   const sendFriendRequestToUser = async (user: User) => {
     try {
-      console.log("📤 Sending friend request to:", user.email);
-      
       const response = await sendFriendRequest(userEmail, user.email, `Hi ${user.name}! Let's be chess friends!`);
-      console.log("📤 Friend request response:", response);
       
       Alert.alert(
         t('friends', 'requestSent'),
@@ -153,18 +147,18 @@ export default function AddFriends({ navigation }: any) {
     const buttonConfig = getRelationshipButtonConfig(user.relationshipStatus);
     
     return (
-      <View style={[styles.userCard, themedStyles.card]}>
+      <View style={[chessStyles.card, styles.userCard]}>
         <View style={styles.userInfo}>
           {/* Profile Picture Placeholder */}
-          <View style={[styles.avatar, themedStyles.card]}>
-            <Text style={[styles.avatarText, themedStyles.text]}>
+          <View style={[chessStyles.card, styles.avatar]}>
+            <Text style={[chessStyles.textPrimary, styles.avatarText]}>
               {user.name.charAt(0).toUpperCase()}
             </Text>
           </View>
           
           <View style={styles.userDetails}>
             <View style={styles.nameRow}>
-              <Text style={[styles.userName, themedStyles.text]}>{user.name}</Text>
+              <Text style={[chessStyles.textPrimary, styles.userName]}>{user.name}</Text>
               <View style={styles.statusIndicator}>
                 <View 
                   style={[
@@ -175,11 +169,11 @@ export default function AddFriends({ navigation }: any) {
               </View>
             </View>
             
-            <Text style={[styles.userEmail, themedStyles.textSecondary]}>
+            <Text style={[chessStyles.textSecondary, styles.userEmail]}>
               {user.email}
             </Text>
             
-            <Text style={[styles.userElo, themedStyles.textSecondary]}>
+            <Text style={[chessStyles.textSecondary, styles.userElo]}>
               Rating: {user.elo}
             </Text>
           </View>
@@ -205,9 +199,9 @@ export default function AddFriends({ navigation }: any) {
     if (searchQuery.trim().length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="search-outline" size={80} color={themedStyles.textSecondary.color} />
-          <Text style={[styles.emptyTitle, themedStyles.text]}>Find Chess Players</Text>
-          <Text style={[styles.emptyMessage, themedStyles.textSecondary]}>
+          <Ionicons name="search-outline" size={80} color={chessColors.textSecondary} />
+          <Text style={[chessStyles.textPrimary, styles.emptyTitle]}>Find Chess Players</Text>
+          <Text style={[chessStyles.textSecondary, styles.emptyMessage]}>
             Search by email or name to find other players and add them as friends!
           </Text>
         </View>
@@ -217,10 +211,10 @@ export default function AddFriends({ navigation }: any) {
     if (searchResults.length === 0 && !searching) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="sad-outline" size={80} color={themedStyles.textSecondary.color} />
-          <Text style={[styles.emptyTitle, themedStyles.text]}>No Results</Text>
-          <Text style={[styles.emptyMessage, themedStyles.textSecondary]}>
-            No users found matching "{searchQuery}". Try a different search term.
+          <Ionicons name="sad-outline" size={80} color={chessColors.textSecondary} />
+          <Text style={[chessStyles.textPrimary, styles.emptyTitle]}>No Results</Text>
+          <Text style={[chessStyles.textSecondary, styles.emptyMessage]}>
+            No users found matching &quot;{searchQuery}&quot;. Try a different search term.
           </Text>
         </View>
       );
@@ -230,27 +224,27 @@ export default function AddFriends({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, themedStyles.container]}>
+    <View style={[chessStyles.container, styles.container]}>
       {/* Header */}
-      <View style={[styles.header, themedStyles.card]}>
+      <View style={[chessStyles.card, styles.header]}>
         <TouchableOpacity 
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={themedStyles.text.color} />
+          <Ionicons name="arrow-back" size={24} color={chessColors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, themedStyles.text]}>Add Friends</Text>
+        <Text style={[chessStyles.textTitle, styles.headerTitle]}>Add Friends</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, themedStyles.input, themedStyles.border]}>
-          <Ionicons name="search" size={20} color={themedStyles.textSecondary.color} />
+        <View style={[chessStyles.input, styles.searchBar]}>
+          <Ionicons name="search" size={20} color={chessColors.textSecondary} />
           <TextInput
-            style={[styles.searchInput, themedStyles.text]}
+            style={[chessStyles.textPrimary, styles.searchInput]}
             placeholder="Search by email or name..."
-            placeholderTextColor={themedStyles.textSecondary.color}
+            placeholderTextColor={chessColors.textSecondary}
             value={searchQuery}
             onChangeText={handleSearchQueryChange}
             autoCapitalize="none"
@@ -264,7 +258,7 @@ export default function AddFriends({ navigation }: any) {
               }}
               style={styles.clearButton}
             >
-              <Ionicons name="close-circle" size={20} color={themedStyles.textSecondary.color} />
+              <Ionicons name="close-circle" size={20} color={chessColors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>

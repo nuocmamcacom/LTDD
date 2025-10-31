@@ -29,7 +29,6 @@ class FriendsManager {
 
     // If already connected to a different user, cleanup first
     if (this.isConnected && this.userEmail !== auth.currentUser?.email) {
-      console.log("🔄 Different user detected, cleaning up previous connection");
       this.cleanup();
     }
 
@@ -41,7 +40,6 @@ class FriendsManager {
 
   // Reinitialize for new user login
   reinitialize() {
-    console.log("🔄 Reinitializing Friends manager for new user");
     this.cleanup();
     this.initialize();
   }
@@ -50,12 +48,9 @@ class FriendsManager {
   private connectSocket() {
     if (!this.socket || this.isConnected) return;
 
-    console.log("🔌 Connecting Friends socket for:", this.userEmail);
-
     this.socket.connect();
     
     this.socket.on("connect", () => {
-      console.log("✅ Friends socket connected");
       this.isConnected = true;
       
       // Join user's personal room for notifications
@@ -69,7 +64,6 @@ class FriendsManager {
     });
 
     this.socket.on("disconnect", () => {
-      console.log("❌ Friends socket disconnected");
       this.isConnected = false;
     });
 
@@ -80,8 +74,6 @@ class FriendsManager {
 
   // Handle incoming friend updates
   private handleFriendUpdate = (data: any) => {
-    console.log("📨 Friend update received:", data);
-    
     let update: FriendUpdate;
     
     if (data.friendEmail && data.status) {
@@ -140,8 +132,6 @@ class FriendsManager {
   // Update user's online status
   updateOnlineStatus(status: OnlineStatus) {
     if (!this.userEmail) return;
-
-    console.log("🟢 Updating online status:", status);
     
     // Update via Socket.IO for real-time
     if (this.isConnected) {
@@ -198,8 +188,6 @@ class FriendsManager {
 
   // Disconnect socket and cleanup connections
   disconnect() {
-    console.log("🔌 Disconnecting Friends manager");
-    
     if (this.socket && this.isConnected) {
       unsubscribeFromFriendUpdates(this.handleFriendUpdate);
       this.socket.disconnect();
@@ -210,8 +198,6 @@ class FriendsManager {
 
   // Clean up when user logs out
   cleanup() {
-    console.log("🧹 Cleaning up Friends manager");
-    
     if (this.userEmail) {
       this.updateOnlineStatus("offline");
     }
@@ -225,8 +211,6 @@ class FriendsManager {
   // Helper to notify about friend request navigation
   private notifyFriendRequestReceived(data: any) {
     // This could trigger navigation to FriendRequests screen
-    // For now, we'll just log it
-    console.log("📱 Should navigate to friend requests:", data);
   }
 
   // Get connection status

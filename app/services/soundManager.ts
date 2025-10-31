@@ -1,4 +1,4 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 
 const SOUND_ENABLED_KEY = '@chess_app_sound_enabled';
@@ -25,8 +25,6 @@ class SoundManager {
       if (volumeValue !== null) {
         this.volume = parseFloat(volumeValue);
       }
-      
-      console.log(`🔊 Sound settings loaded: enabled=${this.isEnabled}, volume=${this.volume}`);
     } catch (error) {
       console.warn('Failed to load sound settings:', error);
     }
@@ -36,7 +34,6 @@ class SoundManager {
     this.isEnabled = enabled;
     try {
       await AsyncStorage.setItem(SOUND_ENABLED_KEY, JSON.stringify(enabled));
-      console.log(`🔊 Sound ${enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
       console.warn('Failed to save sound enabled setting:', error);
     }
@@ -46,7 +43,6 @@ class SoundManager {
     this.volume = Math.max(0, Math.min(1, volume)); // Clamp between 0 and 1
     try {
       await AsyncStorage.setItem(SOUND_VOLUME_KEY, this.volume.toString());
-      console.log(`🔊 Volume set to ${Math.round(this.volume * 100)}%`);
     } catch (error) {
       console.warn('Failed to save volume setting:', error);
     }
@@ -76,7 +72,6 @@ class SoundManager {
           { shouldPlay: false }
         );
         this.sounds.movie = movieSound;
-        console.log('🎬 Loaded movie_1.mp3 for move sounds');
       } catch (e) {
         console.warn('Could not load movie_1.mp3:', e);
       }
@@ -88,7 +83,6 @@ class SoundManager {
           { shouldPlay: false }
         );
         this.sounds.phaiChiu = phaiChiuSound;
-        console.log('🏆 Loaded phai-chiu.mp3 for game over');
       } catch (e) {
         console.warn('Could not load phai-chiu.mp3:', e);
       }
@@ -100,12 +94,9 @@ class SoundManager {
           { shouldPlay: false }
         );
         this.sounds.suprisee = supriseeSound;
-        console.log('👑 Loaded suprisee.mp3 for check sounds');
       } catch (e) {
         console.warn('Could not load suprisee.mp3:', e);
       }
-
-      console.log('🔊 Sound system initialized');
     } catch (error) {
       console.warn('Failed to initialize sound system:', error);
     }
@@ -130,9 +121,6 @@ class SoundManager {
         // Set volume before playing
         await targetSound.setVolumeAsync(this.volume);
         await targetSound.replayAsync();
-        console.log(`🎬 Playing ${soundName} sound at ${Math.round(this.volume * 100)}% volume`);
-      } else {
-        console.log(`🔊 Playing ${soundName} sound (fallback)`);
       }
       
     } catch (error) {
@@ -151,12 +139,10 @@ class SoundManager {
 
   toggleSound() {
     this.isEnabled = !this.isEnabled;
-    console.log(`Sound ${this.isEnabled ? 'enabled' : 'disabled'}`);
     return this.isEnabled;
   }
 
   async cleanup() {
-    console.log('🧹 Sound cleanup');
     for (const sound of Object.values(this.sounds)) {
       try {
         await sound.unloadAsync();
